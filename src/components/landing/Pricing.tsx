@@ -2,11 +2,16 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { stripeService } from "@/services/stripe.service";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const plans = [
   {
     name: "Starter",
     price: "$19",
+    priceId: "price_starter", // Replace with actual Stripe price ID
     description: "Perfect for individuals",
     features: [
       "20 meetings/month",
@@ -19,6 +24,7 @@ const plans = [
   {
     name: "Professional",
     price: "$49",
+    priceId: "price_professional", // Replace with actual Stripe price ID
     description: "Most popular choice",
     features: [
       "100 meetings/month",
@@ -33,6 +39,7 @@ const plans = [
   {
     name: "Enterprise",
     price: "$99",
+    priceId: "price_enterprise", // Replace with actual Stripe price ID
     description: "For power users & teams",
     features: [
       "Unlimited meetings",
@@ -48,6 +55,27 @@ const plans = [
 ];
 
 export const Pricing = () => {
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubscribe = async (priceId: string, planName: string) => {
+    if (!isAuthenticated) {
+      navigate('/auth');
+      return;
+    }
+
+    setLoadingPlan(planName);
+    try {
+      await stripeService.createCheckoutSession(priceId, planName);
+    } catch (error) {
+      console.error('Checkout failed:', error);
+      alert('Payment failed. Please try again.');
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
   return (
     <section className="py-24 bg-gradient-to-b from-secondary/20 to-background">
       <div className="container px-4 mx-auto">
@@ -106,8 +134,10 @@ export const Pricing = () => {
                   className="w-full" 
                   size="lg"
                   variant={plan.popular ? "hero" : "default"}
+                  onClick={() => handleSubscribe(plan.priceId, plan.name)}
+                  disabled={loadingPlan !== null}
                 >
-                  Start Free Trial
+                  {loadingPlan === plan.name ? 'Processing...' : 'Start Free Trial'}
                 </Button>
               </CardFooter>
             </Card>
