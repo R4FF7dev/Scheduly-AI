@@ -50,7 +50,7 @@ export const Footer = () => {
         </div>
 
         <div className="pt-8 border-t border-border text-center text-sm text-muted-foreground">
-          <p>© 2024 Scheduly AI. All rights reserved.</p>
+          <p>© 2025 Scheduly AI. All rights reserved.</p>
         </div>
       </div>
     </footer>

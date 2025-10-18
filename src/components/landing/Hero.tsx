@@ -1,6 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import heroMockup from "@/assets/hero-mockup-dynamic.jpg";
+import heroMockup from "@/assets/hero-mockup-animated.jpg";
+import profile1 from "@/assets/profile-1.jpg";
+import profile2 from "@/assets/profile-2.jpg";
+import profile3 from "@/assets/profile-3.jpg";
+import profile4 from "@/assets/profile-4.jpg";
+import { Link } from "react-router-dom";
 
 export const Hero = () => {
   return (
@@ -42,20 +47,25 @@ export const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button size="xl" variant="hero" className="group">
-                Start Your Free Trial
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button size="xl" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20">
-                See How It Works
-              </Button>
+              <Link to="/auth">
+                <Button size="xl" variant="hero" className="group">
+                  Start Your Free Trial
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              <a href="#how-it-works">
+                <Button size="xl" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20">
+                  See How It Works
+                </Button>
+              </a>
             </div>
             
             <div className="mt-8 flex items-center gap-6 justify-center lg:justify-start text-white/80">
               <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30" />
-                ))}
+                <img src={profile1} alt="User" className="w-10 h-10 rounded-full border-2 border-white/30 object-cover" />
+                <img src={profile2} alt="User" className="w-10 h-10 rounded-full border-2 border-white/30 object-cover" />
+                <img src={profile3} alt="User" className="w-10 h-10 rounded-full border-2 border-white/30 object-cover" />
+                <img src={profile4} alt="User" className="w-10 h-10 rounded-full border-2 border-white/30 object-cover" />
               </div>
               <span className="text-sm">Trusted by 500+ professionals</span>
             </div>

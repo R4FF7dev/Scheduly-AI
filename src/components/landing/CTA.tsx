@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const CTA = () => {
   return (
@@ -25,14 +26,13 @@ export const CTA = () => {
             Join 500+ professionals who've already saved 5+ hours per week with Scheduly AI
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="xl" variant="hero" className="bg-white text-primary hover:bg-white/90 shadow-2xl group">
-              Start Your Free Trial
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button size="xl" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20">
-              Book a Demo
-            </Button>
+          <div className="flex justify-center">
+            <Link to="/auth">
+              <Button size="xl" variant="hero" className="bg-white text-primary hover:bg-white/90 shadow-2xl group">
+                Start Your Free Trial
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
           </div>
 
           <p className="text-white/80 mt-8">
