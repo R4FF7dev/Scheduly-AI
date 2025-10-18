@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 const plans = [
   {
     name: "Starter",
-    price: "$19",
+    price: "€29",
     priceId: "price_starter", // Replace with actual Stripe price ID
     description: "Perfect for individuals",
     features: [
@@ -23,7 +23,7 @@ const plans = [
   },
   {
     name: "Professional",
-    price: "$49",
+    price: "€49",
     priceId: "price_professional", // Replace with actual Stripe price ID
     description: "Most popular choice",
     features: [
@@ -38,7 +38,7 @@ const plans = [
   },
   {
     name: "Enterprise",
-    price: "$99",
+    price: "€99",
     priceId: "price_enterprise", // Replace with actual Stripe price ID
     description: "For power users & teams",
     features: [
