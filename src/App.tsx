@@ -7,7 +7,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { TrialBanner } from "@/components/TrialBanner";
 import Index from "./pages/Index";
-import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Meetings from "./pages/dashboard/Meetings";
@@ -29,7 +28,6 @@ const App = () => (
           <TrialBanner />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/landing" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
