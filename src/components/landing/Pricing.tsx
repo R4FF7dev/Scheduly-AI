@@ -61,7 +61,7 @@ export const Pricing = () => {
 
   const handleSubscribe = async (priceId: string, planName: string) => {
     if (!isAuthenticated) {
-      navigate('/auth');
+      navigate('/auth?tab=signup');
       return;
     }
 

@@ -27,7 +27,7 @@ export const CTA = () => {
           </p>
           
           <div className="flex justify-center">
-            <Link to="/auth">
+            <Link to="/auth?tab=signup">
               <Button size="xl" variant="hero" className="bg-white text-primary hover:bg-white/90 shadow-2xl group [&]:text-white">
                 Start Your Free Trial
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

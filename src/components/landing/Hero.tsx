@@ -47,7 +47,7 @@ export const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link to="/auth">
+              <Link to="/auth?tab=signup">
                 <Button size="xl" variant="hero" className="group">
                   Start Your Free Trial
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
