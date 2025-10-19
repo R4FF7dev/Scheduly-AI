@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import heroMockup from "@/assets/hero-mockup-animated.jpg";
+import heroMockup from "@/assets/hero-mockup-animated.gif";
 import profile1 from "@/assets/profile-1.jpg";
 import profile2 from "@/assets/profile-2.jpg";
 import profile3 from "@/assets/profile-3.jpg";
@@ -53,11 +53,17 @@ export const Hero = () => {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <a href="#how-it-works">
-                <Button size="xl" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20">
-                  See How It Works
-                </Button>
-              </a>
+            <a 
+              href="#how-it-works"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <Button size="xl" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20">
+                See How It Works
+              </Button>
+            </a>
             </div>
             
             <div className="mt-8 flex items-center gap-6 justify-center lg:justify-start text-white/80">

@@ -1,5 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import profile1 from "@/assets/profile-1.jpg";
+import profile2 from "@/assets/profile-2.jpg";
+import profile3 from "@/assets/profile-3.jpg";
 
 const testimonials = [
   {
@@ -7,18 +11,21 @@ const testimonials = [
     role: "Product Manager",
     content: "Scheduly AI saved me 5+ hours per week. The WhatsApp integration is genius - I can schedule meetings while commuting!",
     rating: 5,
+    avatar: profile1,
   },
   {
     name: "Michael Chen",
     role: "Sales Director",
     content: "Game changer for our team. The auto-summaries keep everyone aligned, and the conflict resolution is incredibly smart.",
     rating: 5,
+    avatar: profile2,
   },
   {
     name: "Emma Williams",
     role: "Consultant",
     content: "I've tried many scheduling tools, but nothing beats the convenience of managing everything through WhatsApp. Highly recommend!",
     rating: 5,
+    avatar: profile3,
   },
 ];
 
@@ -52,7 +59,10 @@ export const Testimonials = () => {
                   "{testimonial.content}"
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20" />
+                  <Avatar className="w-12 h-12">
+                    <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                    <AvatarFallback>{testimonial.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                  </Avatar>
                   <div>
                     <p className="font-semibold">{testimonial.name}</p>
                     <p className="text-sm text-muted-foreground">{testimonial.role}</p>

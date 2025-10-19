@@ -7,7 +7,14 @@ export const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container px-4 mx-auto">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
               <MessageSquare className="w-6 h-6 text-white" />
             </div>
@@ -17,16 +24,44 @@ export const Navbar = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-medium hover:text-primary transition-colors">
+            <a 
+              href="#features" 
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               Features
             </a>
-            <a href="#how-it-works" className="text-sm font-medium hover:text-primary transition-colors">
+            <a 
+              href="#how-it-works" 
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               How It Works
             </a>
-            <a href="#pricing" className="text-sm font-medium hover:text-primary transition-colors">
+            <a 
+              href="#pricing" 
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               Pricing
             </a>
-            <a href="#faq" className="text-sm font-medium hover:text-primary transition-colors">
+            <a 
+              href="#faq" 
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               FAQ
             </a>
           </div>
