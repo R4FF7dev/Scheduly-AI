@@ -13,7 +13,7 @@ const Dashboard = () => {
     <DashboardLayout>
       <div className="p-8">
         <div className="mb-8 animate-fade-up">
-          <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name}! 👋</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.user_metadata?.name || user?.email}! 👋</h1>
           <p className="text-muted-foreground">Get started by connecting your integrations.</p>
         </div>
 
