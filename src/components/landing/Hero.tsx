@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 
 export const Hero = () => {
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-24 md:pt-0 pb-16 md:pb-0">
       {/* Animated gradient background */}
       <div 
         className="absolute inset-0 opacity-90"
