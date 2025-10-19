@@ -26,14 +26,9 @@ export const Sidebar = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast.success('Logged out successfully');
-      navigate('/auth');
-    } catch (error) {
-      toast.error('Failed to log out');
-    }
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   return (

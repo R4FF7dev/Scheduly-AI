@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '@/services/auth.service';
 import { userService } from '@/services/user.service';
+import { toast } from '@/hooks/use-toast';
 
 interface User {
   id: string;
@@ -15,7 +16,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (credentials: { email: string; password: string }) => Promise<any>;
   register: (userData: { email: string; password: string; name: string }) => Promise<any>;
-  logout: () => Promise<void>;
+  logout: () => void;
   refreshUser: () => Promise<void>;
 }
 
@@ -58,10 +59,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return response;
   };
 
-  const logout = async () => {
-    await authService.logout();
+  const logout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('auth_token');
     setUser(null);
     setIsAuthenticated(false);
+    toast({
+      title: "Logged out successfully",
+    });
   };
 
   return (
