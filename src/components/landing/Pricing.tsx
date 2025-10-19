@@ -92,7 +92,7 @@ export const Pricing = () => {
           {plans.map((plan, index) => (
             <Card 
               key={index}
-              className={`relative border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 animate-fade-up ${
+              className={`relative border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 animate-fade-up flex flex-col ${
                 plan.popular 
                   ? "border-primary shadow-xl scale-105" 
                   : "border-border hover:border-primary/50"
@@ -118,7 +118,7 @@ export const Pricing = () => {
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 flex-grow">
                 {plan.features.map((feature, featureIndex) => (
                   <div key={featureIndex} className="flex items-start gap-3">
                     <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-0.5">
