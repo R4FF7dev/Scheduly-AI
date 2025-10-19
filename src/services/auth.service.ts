@@ -31,18 +31,11 @@ export const authService = {
   login: async (credentials: LoginCredentials) => {
     const response = await api.post(API_ENDPOINTS.auth.login, credentials, { skipAuth: true });
     
-    // Debug: Log the actual response
-    console.log('Login API Response:', response);
-    console.log('Response success value:', response.success);
-    console.log('Response success type:', typeof response.success);
-    
     // Check if login was successful
     if (response.success !== true) {
-      console.log('Login failed, throwing error:', response.error);
       throw new Error(response.error || 'Login failed');
     }
     
-    console.log('Login successful, setting tokens');
     if (response.accessToken) {
       tokenManager.setToken(response.accessToken);
       tokenManager.setRefreshToken(response.refreshToken);

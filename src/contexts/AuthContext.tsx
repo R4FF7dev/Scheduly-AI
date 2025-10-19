@@ -46,22 +46,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (credentials: { email: string; password: string }) => {
-    console.log('AuthContext: Attempting login');
     try {
       const response = await authService.login(credentials);
-      console.log('AuthContext: Login response received:', response);
       
       // Only set user if login was successful
       if (response.success && response.user) {
-        console.log('AuthContext: Setting user state');
         setUser(response.user);
         setIsAuthenticated(true);
-      } else {
-        console.log('AuthContext: Response missing success or user data');
       }
       return response;
     } catch (error) {
-      console.log('AuthContext: Login error caught:', error);
       throw error;
     }
   };

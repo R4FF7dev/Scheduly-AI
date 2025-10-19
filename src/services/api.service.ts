@@ -55,7 +55,7 @@ const makeRequest = async (url: string, options: RequestOptions = {}) => {
     }
     
     if (!response.ok) {
-      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
     }
     
     return data;
