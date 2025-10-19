@@ -37,7 +37,7 @@ export const Navbar = () => {
                 Sign In
               </Button>
             </Link>
-            <Link to="/auth">
+            <Link to="/auth?tab=signup">
               <Button size="sm" variant="hero">
                 Get Started
               </Button>
