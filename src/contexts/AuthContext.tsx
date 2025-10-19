@@ -47,15 +47,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (credentials: { email: string; password: string }) => {
     const response = await authService.login(credentials);
-    setUser(response.user);
-    setIsAuthenticated(true);
+    // Only set user if login was successful
+    if (response.success && response.user) {
+      setUser(response.user);
+      setIsAuthenticated(true);
+    }
     return response;
   };
 
   const register = async (userData: { email: string; password: string; name: string }) => {
     const response = await authService.register(userData);
-    setUser(response.user);
-    setIsAuthenticated(true);
+    // Only set user if registration was successful
+    if (response.success && response.user) {
+      setUser(response.user);
+      setIsAuthenticated(true);
+    }
     return response;
   };
 
