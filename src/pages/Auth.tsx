@@ -6,21 +6,50 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageSquare, Mail } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { login, register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleAuth = async (e: React.FormEvent, type: 'signin' | 'signup') => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success(type === 'signin' ? 'Welcome back!' : 'Account created successfully!');
+    const formData = new FormData(e.target as HTMLFormElement);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    
+    try {
+      await login({ email, password });
+      toast.success('Welcome back!');
       navigate('/dashboard');
-    }, 1500);
+    } catch (error: any) {
+      toast.error(error.message || 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    const formData = new FormData(e.target as HTMLFormElement);
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    
+    try {
+      await register({ email, password, name });
+      toast.success('Account created successfully!');
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast.error(error.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -53,9 +82,10 @@ const Auth = () => {
             </TabsList>
 
             <TabsContent value="signin">
-              <form onSubmit={(e) => handleAuth(e, 'signin')} className="space-y-4">
+              <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Input
+                    name="email"
                     type="email"
                     placeholder="Email"
                     required
@@ -64,6 +94,7 @@ const Auth = () => {
                 </div>
                 <div className="space-y-2">
                   <Input
+                    name="password"
                     type="password"
                     placeholder="Password"
                     required
@@ -77,9 +108,10 @@ const Auth = () => {
             </TabsContent>
 
             <TabsContent value="signup">
-              <form onSubmit={(e) => handleAuth(e, 'signup')} className="space-y-4">
+              <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Input
+                    name="name"
                     type="text"
                     placeholder="Full Name"
                     required
@@ -88,6 +120,7 @@ const Auth = () => {
                 </div>
                 <div className="space-y-2">
                   <Input
+                    name="email"
                     type="email"
                     placeholder="Email"
                     required
@@ -96,6 +129,7 @@ const Auth = () => {
                 </div>
                 <div className="space-y-2">
                   <Input
+                    name="password"
                     type="password"
                     placeholder="Password"
                     required
