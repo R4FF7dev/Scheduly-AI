@@ -1,94 +1,78 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { User, Session } from '@supabase/supabase-js';
+import { authService } from '@/services/auth.service';
+import { userService } from '@/services/user.service';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
-  register: (userData: { email: string; password: string; name: string }) => Promise<void>;
+  login: (credentials: { email: string; password: string }) => Promise<any>;
+  register: (userData: { email: string; password: string; name: string }) => Promise<any>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsAuthenticated(!!session);
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsAuthenticated(!!session);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    checkAuth();
   }, []);
 
+  const checkAuth = async () => {
+    if (authService.isAuthenticated()) {
+      try {
+        const userData = await userService.getProfile();
+        setUser(userData);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setIsAuthenticated(false);
+      }
+    }
+    setLoading(false);
+  };
+
   const login = async (credentials: { email: string; password: string }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: credentials.email,
-      password: credentials.password,
-    });
-    
-    if (error) throw error;
-    
-    setSession(data.session);
-    setUser(data.user);
+    const response = await authService.login(credentials);
+    setUser(response.user);
     setIsAuthenticated(true);
+    return response;
   };
 
   const register = async (userData: { email: string; password: string; name: string }) => {
-    const { data, error } = await supabase.auth.signUp({
-      email: userData.email,
-      password: userData.password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-        data: {
-          name: userData.name,
-        },
-      },
-    });
-    
-    if (error) throw error;
-    
-    setSession(data.session);
-    setUser(data.user);
+    const response = await authService.register(userData);
+    setUser(response.user);
     setIsAuthenticated(true);
+    return response;
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
+    await authService.logout();
     setUser(null);
     setIsAuthenticated(false);
   };
 
   return (
     <AuthContext.Provider value={{ 
-      user,
-      session,
+      user, 
       loading, 
       isAuthenticated, 
       login, 
       register, 
       logout,
+      refreshUser: checkAuth 
     }}>
       {children}
     </AuthContext.Provider>

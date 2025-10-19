@@ -7,7 +7,7 @@ import { MessageSquare, Mail } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -54,20 +54,7 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      
-      if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message || 'Google sign-in failed');
-      setIsLoading(false);
-    }
+    toast.error('Google sign-in is not yet configured');
   };
 
   return (
