@@ -177,9 +177,10 @@ const PrivacyPolicy = () => {
                 If you have questions or concerns about this privacy policy or our data practices, please contact us:
               </p>
               <div className="space-y-2 text-muted-foreground ml-4">
-                <p><strong>Email:</strong> privacy@schedulyai.com</p>
-                <p><strong>Support:</strong> support@schedulyai.com</p>
-                <p><strong>Address:</strong> Scheduly AI, Inc.</p>
+                <p><strong>Email:</strong> info@schedulyai.com</p>
+                <p><strong>Support:</strong> info@schedulyai.com</p>
+                <p><strong>Address:</strong> Bolderweg 20, 1332 AV Almere, The Netherlands</p>
+                <p><strong>KVK:</strong> 65204964</p>
               </div>
             </section>
 

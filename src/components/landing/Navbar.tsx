@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export const Navbar = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isHomePage = location.pathname === '/';
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container px-4 mx-auto">
@@ -11,8 +14,10 @@ export const Navbar = () => {
             to="/" 
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             onClick={(e) => {
-              e.preventDefault();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              if (isHomePage) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
             }}
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
@@ -29,7 +34,11 @@ export const Navbar = () => {
               className="text-sm font-medium hover:text-primary transition-colors"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                if (isHomePage) {
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  navigate('/#features');
+                }
               }}
             >
               Features
@@ -39,7 +48,11 @@ export const Navbar = () => {
               className="text-sm font-medium hover:text-primary transition-colors"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                if (isHomePage) {
+                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  navigate('/#how-it-works');
+                }
               }}
             >
               How It Works
@@ -49,7 +62,11 @@ export const Navbar = () => {
               className="text-sm font-medium hover:text-primary transition-colors"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                if (isHomePage) {
+                  document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  navigate('/#pricing');
+                }
               }}
             >
               Pricing
@@ -59,7 +76,11 @@ export const Navbar = () => {
               className="text-sm font-medium hover:text-primary transition-colors"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+                if (isHomePage) {
+                  document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  navigate('/#faq');
+                }
               }}
             >
               FAQ
