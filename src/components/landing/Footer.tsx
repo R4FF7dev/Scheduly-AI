@@ -46,8 +46,8 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="#features" onClick={(e) => { e.preventDefault(); handleNavigation('features'); }} className="hover:text-primary transition-colors cursor-pointer">Features</a></li>
               <li><a href="#pricing" onClick={(e) => { e.preventDefault(); handleNavigation('pricing'); }} className="hover:text-primary transition-colors cursor-pointer">Pricing</a></li>
-              <li><a href="#how-it-works" onClick={(e) => { e.preventDefault(); handleNavigation('how-it-works'); }} className="hover:text-primary transition-colors cursor-pointer">How It Works</a></li>
-              <li><a href="#faq" onClick={(e) => { e.preventDefault(); handleNavigation('faq'); }} className="hover:text-primary transition-colors cursor-pointer">FAQ</a></li>
+              <li><Link to="/integrations" className="hover:text-primary transition-colors">Integrations</Link></li>
+              <li><Link to="/api" className="hover:text-primary transition-colors">API</Link></li>
             </ul>
           </div>
 
