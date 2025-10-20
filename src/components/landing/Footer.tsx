@@ -1,7 +1,28 @@
 import { MessageSquare } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export const Footer = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isHomePage = location.pathname === '/';
+
+  const handleNavigation = (sectionId: string) => {
+    if (isHomePage) {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate('/');
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
+
   return (
     <footer className="bg-secondary/20 border-t border-border py-12">
       <div className="container px-4 mx-auto">
@@ -23,20 +44,19 @@ export const Footer = () => {
           <div>
             <h3 className="font-semibold mb-4">Product</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#features" className="hover:text-primary transition-colors">Features</a></li>
-              <li><a href="#pricing" className="hover:text-primary transition-colors">Pricing</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Integrations</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">API</a></li>
+              <li><a href="#features" onClick={(e) => { e.preventDefault(); handleNavigation('features'); }} className="hover:text-primary transition-colors cursor-pointer">Features</a></li>
+              <li><a href="#pricing" onClick={(e) => { e.preventDefault(); handleNavigation('pricing'); }} className="hover:text-primary transition-colors cursor-pointer">Pricing</a></li>
+              <li><a href="#how-it-works" onClick={(e) => { e.preventDefault(); handleNavigation('how-it-works'); }} className="hover:text-primary transition-colors cursor-pointer">How It Works</a></li>
+              <li><a href="#faq" onClick={(e) => { e.preventDefault(); handleNavigation('faq'); }} className="hover:text-primary transition-colors cursor-pointer">FAQ</a></li>
             </ul>
           </div>
 
           <div>
             <h3 className="font-semibold mb-4">Company</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">About</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
+              <li><Link to="/about" className="hover:text-primary transition-colors">About</Link></li>
+              <li><Link to="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
+              <li><Link to="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
             </ul>
           </div>
 
