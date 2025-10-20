@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Calendar, Clock } from "lucide-react";
+import heroImage from "@/assets/blog-hero-scheduling.jpg";
 
 const blogPosts = [
   {
@@ -15,7 +16,7 @@ const blogPosts = [
     date: "2025-01-15",
     readTime: "5 min read",
     category: "Product",
-    image: "/placeholder.svg"
+    image: heroImage
   }
 ];
 
