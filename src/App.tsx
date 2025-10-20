@@ -14,6 +14,7 @@ import Settings from "./pages/dashboard/Settings";
 import Billing from "./pages/dashboard/Billing";
 import Support from "./pages/dashboard/Support";
 import Onboarding from "./pages/dashboard/Onboarding";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
             <Route path="/dashboard/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
             <Route path="/dashboard/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
