@@ -1,9 +1,14 @@
+import { useEffect } from "react";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import { Card } from "@/components/ui/card";
 import { Shield, Lock, Eye, Database, FileCheck, Users, AlertCircle, CheckCircle } from "lucide-react";
 
 const Security = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen">
       <Navbar />

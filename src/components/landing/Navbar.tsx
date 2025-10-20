@@ -6,6 +6,22 @@ export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isHomePage = location.pathname === '/';
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleNavigation = (sectionId: string) => {
+    if (isHomePage) {
+      scrollToSection(sectionId);
+    } else {
+      navigate('/');
+      setTimeout(() => scrollToSection(sectionId), 100);
+    }
+  };
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container px-4 mx-auto">
@@ -13,11 +29,8 @@ export const Navbar = () => {
           <Link 
             to="/" 
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            onClick={(e) => {
-              if (isHomePage) {
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
@@ -31,56 +44,40 @@ export const Navbar = () => {
           <div className="hidden md:flex items-center gap-8">
             <a 
               href="#features" 
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium hover:text-primary transition-colors cursor-pointer"
               onClick={(e) => {
                 e.preventDefault();
-                if (isHomePage) {
-                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                  navigate('/#features');
-                }
+                handleNavigation('features');
               }}
             >
               Features
             </a>
             <a 
               href="#how-it-works" 
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium hover:text-primary transition-colors cursor-pointer"
               onClick={(e) => {
                 e.preventDefault();
-                if (isHomePage) {
-                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                  navigate('/#how-it-works');
-                }
+                handleNavigation('how-it-works');
               }}
             >
               How It Works
             </a>
             <a 
               href="#pricing" 
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium hover:text-primary transition-colors cursor-pointer"
               onClick={(e) => {
                 e.preventDefault();
-                if (isHomePage) {
-                  document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                  navigate('/#pricing');
-                }
+                handleNavigation('pricing');
               }}
             >
               Pricing
             </a>
             <a 
               href="#faq" 
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium hover:text-primary transition-colors cursor-pointer"
               onClick={(e) => {
                 e.preventDefault();
-                if (isHomePage) {
-                  document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                  navigate('/#faq');
-                }
+                handleNavigation('faq');
               }}
             >
               FAQ
