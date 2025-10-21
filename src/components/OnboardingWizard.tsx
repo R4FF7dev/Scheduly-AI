@@ -6,6 +6,7 @@ import { CheckCircle, Calendar, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
 
 export const OnboardingWizard = () => {
   const [step, setStep] = useState(1);
@@ -14,6 +15,7 @@ export const OnboardingWizard = () => {
   const [verificationCode, setVerificationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleConnectCalendar = async () => {
     setLoading(true);
@@ -35,10 +37,22 @@ export const OnboardingWizard = () => {
   const handleConnectWhatsApp = async () => {
     setLoading(true);
     try {
-      await whatsappService.connect(whatsappNumber);
+      const response = await whatsappService.connect(whatsappNumber);
+      console.log('WhatsApp connect response:', response);
+      
+      toast({
+        title: "Verification code sent!",
+        description: `A verification code has been sent to ${whatsappNumber} via WhatsApp.`,
+      });
+      
       setStep(3);
     } catch (error) {
-      alert('Failed to connect WhatsApp: ' + (error as Error).message);
+      console.error('WhatsApp connection error:', error);
+      toast({
+        title: "Connection failed",
+        description: (error as Error).message || "Failed to send verification code. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -47,10 +61,22 @@ export const OnboardingWizard = () => {
   const handleVerifyWhatsApp = async () => {
     setLoading(true);
     try {
-      await whatsappService.verify(verificationCode);
+      const response = await whatsappService.verify(verificationCode, whatsappNumber);
+      console.log('WhatsApp verify response:', response);
+      
+      toast({
+        title: "WhatsApp verified!",
+        description: "Your WhatsApp number has been successfully verified.",
+      });
+      
       setStep(4);
     } catch (error) {
-      alert('Verification failed: ' + (error as Error).message);
+      console.error('WhatsApp verification error:', error);
+      toast({
+        title: "Verification failed",
+        description: (error as Error).message || "Invalid verification code. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

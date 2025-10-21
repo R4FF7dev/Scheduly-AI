@@ -11,12 +11,15 @@ export const useIntegrationStatus = () => {
     const checkStatus = async () => {
       try {
         const [calendarStatus, whatsappStatus] = await Promise.all([
-          calendarService.getSyncStatus(),
-          whatsappService.getStatus(),
+          calendarService.getSyncStatus().catch(() => ({ connected: false })),
+          whatsappService.getStatus().catch(() => ({ connected: false, verified: false })),
         ]);
         
+        console.log('Calendar status:', calendarStatus);
+        console.log('WhatsApp status:', whatsappStatus);
+        
         setIsCalendarConnected(calendarStatus?.connected || false);
-        setIsWhatsAppConnected(whatsappStatus?.connected || false);
+        setIsWhatsAppConnected(whatsappStatus?.verified || whatsappStatus?.connected || false);
       } catch (error) {
         console.error('Error checking integration status:', error);
       } finally {
