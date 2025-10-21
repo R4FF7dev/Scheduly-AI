@@ -1,4 +1,4 @@
-import { api, tokenManager } from './api.service';
+import { api } from './api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
 
 interface LoginCredentials {
@@ -14,31 +14,27 @@ interface RegisterData {
 
 export const authService = {
   register: async (userData: RegisterData) => {
-    const response = await api.post(API_ENDPOINTS.auth.register, userData, { skipAuth: true });
+    const response = await api.post(API_ENDPOINTS.auth.register, userData);
     
-    // Check if registration was successful
     if (response.success !== true) {
       throw new Error(response.error || 'Registration failed');
     }
     
     if (response.accessToken) {
-      tokenManager.setToken(response.accessToken);
-      tokenManager.setRefreshToken(response.refreshToken);
+      localStorage.setItem('authToken', response.accessToken);
     }
     return response;
   },
   
   login: async (credentials: LoginCredentials) => {
-    const response = await api.post(API_ENDPOINTS.auth.login, credentials, { skipAuth: true });
+    const response = await api.post(API_ENDPOINTS.auth.login, credentials);
     
-    // Check if login was successful
     if (response.success !== true) {
       throw new Error(response.error || 'Login failed');
     }
     
     if (response.accessToken) {
-      tokenManager.setToken(response.accessToken);
-      tokenManager.setRefreshToken(response.refreshToken);
+      localStorage.setItem('authToken', response.accessToken);
     }
     return response;
   },
@@ -47,17 +43,17 @@ export const authService = {
     try {
       await api.post(API_ENDPOINTS.auth.logout);
     } finally {
-      tokenManager.clearTokens();
+      localStorage.removeItem('authToken');
     }
   },
   
   verifyEmail: async (token: string) => {
-    return api.post(API_ENDPOINTS.auth.verifyEmail, { token }, { skipAuth: true });
+    return api.post(API_ENDPOINTS.auth.verifyEmail, { token });
   },
   
   resetPassword: async (email: string) => {
-    return api.post(API_ENDPOINTS.auth.resetPassword, { email }, { skipAuth: true });
+    return api.post(API_ENDPOINTS.auth.resetPassword, { email });
   },
   
-  isAuthenticated: () => !!tokenManager.getToken(),
+  isAuthenticated: () => !!localStorage.getItem('authToken'),
 };

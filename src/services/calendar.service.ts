@@ -3,7 +3,7 @@ import { API_ENDPOINTS } from '@/config/api.config';
 
 export const calendarService = {
   connect: async () => {
-    return api.post(API_ENDPOINTS.calendar.connect, {}, { skipAuth: true });
+    return api.post(API_ENDPOINTS.calendar.connect, {});
   },
   
   disconnect: async () => {
@@ -19,6 +19,6 @@ export const calendarService = {
   },
   
   getSyncStatus: async () => {
-    return api.get(API_ENDPOINTS.calendar.syncStatus, { skipAuth: true });
+    return api.get(API_ENDPOINTS.calendar.syncStatus);
   },
 };
