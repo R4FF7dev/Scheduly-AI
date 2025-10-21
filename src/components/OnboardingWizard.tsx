@@ -43,6 +43,7 @@ export const OnboardingWizard = () => {
   // Step 3: Verification
   const [verificationCode, setVerificationCode] = useState("");
   const [codeExpiry, setCodeExpiry] = useState<number | null>(null);
+  const [remainingTime, setRemainingTime] = useState(0);
   
   // Step 4: Preferences
   const [meetingDuration, setMeetingDuration] = useState("30");
@@ -63,7 +64,9 @@ export const OnboardingWizard = () => {
   useEffect(() => {
     if (step === 3 && codeExpiry) {
       const interval = setInterval(() => {
-        const remaining = Math.max(0, codeExpiry - Date.now());
+        const remaining = Math.max(0, Math.floor((codeExpiry - Date.now()) / 1000));
+        setRemainingTime(remaining);
+        
         if (remaining === 0) {
           clearInterval(interval);
           toast({
@@ -73,6 +76,10 @@ export const OnboardingWizard = () => {
           });
         }
       }, 1000);
+      
+      // Set initial value immediately
+      setRemainingTime(Math.max(0, Math.floor((codeExpiry - Date.now()) / 1000)));
+      
       return () => clearInterval(interval);
     }
   }, [step, codeExpiry]);
@@ -242,7 +249,6 @@ export const OnboardingWizard = () => {
   };
 
   const progress = (step / 4) * 100;
-  const remainingTime = codeExpiry ? Math.max(0, Math.floor((codeExpiry - Date.now()) / 1000)) : 0;
   const minutes = Math.floor(remainingTime / 60);
   const seconds = remainingTime % 60;
 
