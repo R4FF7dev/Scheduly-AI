@@ -1,125 +1,134 @@
-import { API_ENDPOINTS } from '@/config/api.config';
+import axios, { AxiosError } from 'axios';
+import { API_BASE_URL } from '@/config/api.config';
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 30000, // 30 second timeout
+});
 
 // Token management
-const TOKEN_KEY = 'scheduly_auth_token';
-const REFRESH_TOKEN_KEY = 'scheduly_refresh_token';
-
 export const tokenManager = {
-  getToken: () => localStorage.getItem(TOKEN_KEY),
-  setToken: (token: string) => localStorage.setItem(TOKEN_KEY, token),
-  getRefreshToken: () => localStorage.getItem(REFRESH_TOKEN_KEY),
-  setRefreshToken: (token: string) => localStorage.setItem(REFRESH_TOKEN_KEY, token),
+  getToken: () => localStorage.getItem('auth_token'),
+  setToken: (token: string) => localStorage.setItem('auth_token', token),
+  getRefreshToken: () => localStorage.getItem('refresh_token'),
+  setRefreshToken: (token: string) => localStorage.setItem('refresh_token', token),
+  clearToken: () => localStorage.removeItem('auth_token'),
   clearTokens: () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('refresh_token');
   },
 };
 
-interface RequestOptions extends RequestInit {
-  skipAuth?: boolean;
-  isRetry?: boolean;
-}
-
-// Base fetch function with error handling
-const makeRequest = async (url: string, options: RequestOptions = {}) => {
-  const token = tokenManager.getToken();
-  
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  };
-  
-  if (token && !options.skipAuth) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  
-  const config: RequestInit = {
-    ...options,
-    headers,
-  };
-  
-  try {
-    const response = await fetch(url, config);
+// Request interceptor - Add auth token to requests
+apiClient.interceptors.request.use(
+  (config: any) => {
+    // Skip adding auth token if skipAuth option is set
+    if (config.skipAuth) {
+      delete config.skipAuth; // Remove custom option before sending request
+      return config;
+    }
     
-    // Handle token refresh if unauthorized
-    if (response.status === 401 && !options.isRetry) {
-      const refreshed = await refreshAccessToken();
-      if (refreshed) {
-        return makeRequest(url, { ...options, isRetry: true });
-      } else {
-        tokenManager.clearTokens();
+    const token = tokenManager.getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor - Handle errors globally
+apiClient.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  async (error: AxiosError) => {
+    const originalRequest = error.config as any;
+
+    // Handle 401 errors (unauthorized)
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      // Clear token and redirect to auth
+      tokenManager.clearToken();
+      
+      // Only redirect if not already on auth page
+      if (!window.location.pathname.includes('/auth')) {
         window.location.href = '/auth';
-        throw new Error('Session expired. Please login again.');
       }
+      
+      return Promise.reject(new Error('Session expired. Please login again.'));
     }
-    
-    // Check if response has content and is JSON
-    const contentType = response.headers.get('content-type');
-    const hasJsonContent = contentType && contentType.includes('application/json');
-    
-    // Try to parse JSON if content exists
-    let data;
-    try {
-      const text = await response.text();
-      if (text && text.trim().length > 0) {
-        data = JSON.parse(text);
-      } else {
-        data = { success: response.ok };
-      }
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      throw new Error(`Invalid response from server. Please check your n8n webhook configuration.`);
-    }
-    
-    if (!response.ok) {
-      throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('API Error:', error);
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error('Network request failed. Please check your connection.');
-  }
-};
 
-// Refresh token logic
-const refreshAccessToken = async (): Promise<boolean> => {
-  const refreshToken = tokenManager.getRefreshToken();
-  if (!refreshToken) return false;
-  
-  try {
-    const response = await fetch(API_ENDPOINTS.auth.refreshToken, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      tokenManager.setToken(data.accessToken);
-      return true;
+    // Handle network errors
+    if (!error.response) {
+      console.error('Network Error:', error.message);
+      return Promise.reject(new Error('Network error. Please check your connection and try again.'));
     }
-    return false;
-  } catch {
-    return false;
-  }
-};
 
-// API Methods
+    // Handle other HTTP errors
+    const responseData = error.response?.data as any;
+    const errorMessage = 
+      responseData?.message || 
+      responseData?.error || 
+      `Request failed with status ${error.response?.status}`;
+
+    console.error('API Error:', errorMessage);
+    return Promise.reject(new Error(errorMessage));
+  }
+);
+
 export const api = {
-  get: (url: string, options: RequestOptions = {}) => makeRequest(url, { ...options, method: 'GET' }),
-  post: (url: string, data?: any, options: RequestOptions = {}) => makeRequest(url, { 
-    ...options, 
-    method: 'POST', 
-    body: JSON.stringify(data) 
-  }),
-  put: (url: string, data?: any, options: RequestOptions = {}) => makeRequest(url, { 
-    ...options, 
-    method: 'PUT', 
-    body: JSON.stringify(data) 
-  }),
-  delete: (url: string, options: RequestOptions = {}) => makeRequest(url, { ...options, method: 'DELETE' }),
+  get: async (endpoint: string, options?: any) => {
+    try {
+      const response = await apiClient.get(endpoint, options);
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  },
+  
+  post: async (endpoint: string, data?: any, options?: any) => {
+    try {
+      const response = await apiClient.post(endpoint, data, options);
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  },
+  
+  put: async (endpoint: string, data?: any, options?: any) => {
+    try {
+      const response = await apiClient.put(endpoint, data, options);
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  },
+  
+  delete: async (endpoint: string, options?: any) => {
+    try {
+      const response = await apiClient.delete(endpoint, options);
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  },
 };
