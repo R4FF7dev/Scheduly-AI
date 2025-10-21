@@ -1,25 +1,29 @@
 import { api } from './api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
 
+// Get user_id from localStorage (set by AuthContext)
+const getUserId = (): string => {
+  const user = localStorage.getItem('user');
+  if (!user) throw new Error('User not authenticated');
+  return JSON.parse(user).id;
+};
+
 export const whatsappService = {
-  connect: async (phoneNumber: string) => {
-    console.log('WhatsApp connect - sending to:', API_ENDPOINTS.whatsapp.connect);
-    console.log('WhatsApp connect - payload:', { phoneNumber });
-    try {
-      const response = await api.post(API_ENDPOINTS.whatsapp.connect, { phoneNumber }, { skipAuth: true });
-      console.log('WhatsApp connect - response:', response);
-      return response;
-    } catch (error) {
-      console.error('WhatsApp connect - error:', error);
-      throw error;
-    }
+  connect: async (phoneNumber: string, countryCode?: string) => {
+    const user_id = getUserId();
+    return api.post(API_ENDPOINTS.whatsapp.connect, {
+      user_id,
+      phone_number: phoneNumber,
+      country_code: countryCode || ''
+    });
   },
   
-  verify: async (verificationCode: string, phoneNumber: string) => {
-    return api.post(API_ENDPOINTS.whatsapp.verify, { 
-      code: verificationCode,
-      phoneNumber 
-    }, { skipAuth: true });
+  verify: async (verificationCode: string) => {
+    const user_id = getUserId();
+    return api.post(API_ENDPOINTS.whatsapp.verify, {
+      user_id,
+      verification_code: verificationCode
+    });
   },
   
   disconnect: async () => {
@@ -27,7 +31,7 @@ export const whatsappService = {
   },
   
   getStatus: async () => {
-    return api.get(API_ENDPOINTS.whatsapp.status, { skipAuth: true });
+    return api.get(API_ENDPOINTS.whatsapp.status);
   },
   
   sendTestMessage: async () => {
