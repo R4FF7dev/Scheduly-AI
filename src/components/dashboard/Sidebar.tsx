@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Calendar, 
+  CalendarDays,
   Settings, 
   CreditCard, 
   HeadphonesIcon,
@@ -20,6 +21,7 @@ interface SidebarProps {
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Meetings", href: "/dashboard/meetings", icon: Calendar },
+  { name: "Calendar", href: "/dashboard/calendar", icon: CalendarDays },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
   { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
   { name: "Support", href: "/dashboard/support", icon: HeadphonesIcon },
