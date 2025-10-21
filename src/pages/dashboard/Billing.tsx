@@ -224,15 +224,15 @@ const Billing = () => {
           </Card>
         </div>
 
-        {/* Payment Method (only show if subscribed) */}
-        {subscription?.stripe_subscription_id && (
-          <Card className="shadow-lg animate-fade-up" style={{ animationDelay: "0.3s" }}>
-            <CardHeader>
-              <CardTitle>Payment Method</CardTitle>
-              <CardDescription>Managed securely through Stripe</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between p-4 rounded-lg border">
+        {/* Payment Method */}
+        <Card className="shadow-lg animate-fade-up" style={{ animationDelay: "0.3s" }}>
+          <CardHeader>
+            <CardTitle>Payment Method</CardTitle>
+            <CardDescription>Manage your payment information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {subscription?.stripe_subscription_id ? (
+              <div className="flex items-center justify-between p-4 rounded-lg border border-border">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
                     <CreditCard className="w-6 h-6 text-primary" />
@@ -240,17 +240,57 @@ const Billing = () => {
                   <div>
                     <p className="font-semibold">Payment details stored securely</p>
                     <p className="text-sm text-muted-foreground">
-                      Click "Manage Billing" to view and update
+                      Managed through Stripe
                     </p>
                   </div>
                 </div>
                 <Button variant="outline" onClick={handleManageBilling}>
-                  Manage
+                  Update
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            ) : (
+              <div className="flex items-center justify-between p-4 rounded-lg border border-border">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">No payment method on file</p>
+                    <p className="text-sm text-muted-foreground">
+                      Subscribe to a plan to add payment details
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Billing History */}
+        <Card className="mt-8 shadow-lg animate-fade-up" style={{ animationDelay: "0.4s" }}>
+          <CardHeader>
+            <CardTitle>Billing History</CardTitle>
+            <CardDescription>Download your past invoices</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {subscription?.stripe_subscription_id ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">
+                  View your billing history and download invoices
+                </p>
+                <Button onClick={handleManageBilling}>
+                  View Billing History
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  No billing history available. Subscribe to a plan to see your invoices here.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
