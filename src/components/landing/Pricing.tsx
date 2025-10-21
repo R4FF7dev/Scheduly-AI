@@ -6,12 +6,13 @@ import { useState } from "react";
 import { stripeService } from "@/services/stripe.service";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { STRIPE_PRICES } from '@/config/api.config';
 
 const plans = [
   {
     name: "Starter",
     price: "€29",
-    priceId: "price_starter", // Replace with actual Stripe price ID
+    priceId: STRIPE_PRICES.starter,
     description: "Perfect for individuals",
     features: [
       "20 meetings/month",
@@ -24,7 +25,7 @@ const plans = [
   {
     name: "Professional",
     price: "€49",
-    priceId: "price_professional", // Replace with actual Stripe price ID
+    priceId: STRIPE_PRICES.professional,
     description: "Most popular choice",
     features: [
       "100 meetings/month",
@@ -39,7 +40,7 @@ const plans = [
   {
     name: "Enterprise",
     price: "€99",
-    priceId: "price_enterprise", // Replace with actual Stripe price ID
+    priceId: STRIPE_PRICES.enterprise,
     description: "For power users & teams",
     features: [
       "Unlimited meetings",
