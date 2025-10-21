@@ -6,28 +6,50 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useIntegrationStatus } from "@/hooks/useIntegrationStatus";
 import { ConnectedDashboard } from "@/components/dashboard/ConnectedDashboard";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { isFullyConnected, isLoading } = useIntegrationStatus();
+  const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+
+  // Fetch calendar events when fully connected
+  useEffect(() => {
+    if (isFullyConnected && user?.id) {
+      fetchCalendarEvents();
+    }
+  }, [isFullyConnected, user?.id]);
 
   const fetchCalendarEvents = async () => {
+    if (!user?.id) return;
+    
+    setLoadingEvents(true);
     try {
       const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/operations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: user?.id,
+          user_id: user.id,
           operation: 'list',
           time_min: new Date().toISOString(),
           time_max: new Date(Date.now() + 7*24*60*60*1000).toISOString()
         })
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch calendar events');
+      }
+
       const data = await response.json();
-      return data.items || [];
+      setCalendarEvents(data.items || []);
     } catch (error) {
       console.error('Failed to fetch calendar events:', error);
-      return [];
+      toast.error('Could not load calendar events');
+    } finally {
+      setLoadingEvents(false);
     }
   };
 
@@ -43,6 +65,7 @@ const Dashboard = () => {
       </DashboardLayout>
     );
   }
+
   return (
     <DashboardLayout>
       <div className="p-4 md:p-8">
@@ -72,7 +95,161 @@ const Dashboard = () => {
 
         {/* Conditional Dashboard Content */}
         {isFullyConnected ? (
-          <ConnectedDashboard />
+          <div className="space-y-4 md:space-y-6">
+            {/* Stats Overview */}
+            <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{calendarEvents.length}</div>
+                  <p className="text-xs text-muted-foreground">Next 7 days</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Today</CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {calendarEvents.filter(e => {
+                      const eventDate = new Date(e.start?.dateTime || e.start?.date);
+                      const today = new Date();
+                      return eventDate.toDateString() === today.toDateString();
+                    }).length}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Events scheduled</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">WhatsApp Agent</CardTitle>
+                  <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">Active</div>
+                  <p className="text-xs text-muted-foreground">Ready to schedule</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Calendar Events */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg md:text-xl">Upcoming Events</CardTitle>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={fetchCalendarEvents}
+                  disabled={loadingEvents}
+                >
+                  {loadingEvents ? 'Refreshing...' : 'Refresh'}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {loadingEvents ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  </div>
+                ) : calendarEvents.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No upcoming events in the next 7 days</p>
+                    <Button 
+                      onClick={() => window.open('https://wa.me/14155238886?text=Schedule%20a%20meeting%20tomorrow%20at%202pm', '_blank')}
+                      className="mt-4"
+                      variant="outline"
+                    >
+                      Schedule via WhatsApp
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3 md:space-y-4">
+                    {calendarEvents.slice(0, 5).map((event, index) => {
+                      const startDate = new Date(event.start?.dateTime || event.start?.date);
+                      const isToday = startDate.toDateString() === new Date().toDateString();
+                      
+                      return (
+                        <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 md:p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-sm md:text-base">{event.summary || 'Untitled Event'}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-xs md:text-sm text-muted-foreground">
+                                {startDate.toLocaleDateString('en-US', { 
+                                  weekday: 'short', 
+                                  month: 'short', 
+                                  day: 'numeric' 
+                                })} at {startDate.toLocaleTimeString('en-US', { 
+                                  hour: 'numeric', 
+                                  minute: '2-digit' 
+                                })}
+                              </p>
+                              {isToday && (
+                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Today</span>
+                              )}
+                            </div>
+                            {event.hangoutLink && (
+                              <a 
+                                href={event.hangoutLink} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                              >
+                                📹 Join Google Meet
+                              </a>
+                            )}
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full sm:w-auto"
+                            onClick={() => window.open(event.htmlLink, '_blank')}
+                          >
+                            View
+                          </Button>
+                        </div>
+                      );
+                    })}
+                    {calendarEvents.length > 5 && (
+                      <Button 
+                        onClick={() => navigate('/dashboard/calendar')} 
+                        className="w-full mt-4" 
+                        variant="outline"
+                      >
+                        View All {calendarEvents.length} Events
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Test WhatsApp Button */}
+            <Card className="bg-gradient-to-r from-green-50 to-emerald-50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1">Test Your WhatsApp Agent</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Try: "What's on my calendar today?" or "Schedule a meeting tomorrow at 2pm"
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => window.open('https://wa.me/14155238886', '_blank')}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Open WhatsApp
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         ) : (
           <Card className="shadow-lg animate-fade-up">
             <CardContent className="p-6 md:p-12 text-center">
@@ -109,39 +286,6 @@ const Dashboard = () => {
                     </CardContent>
                   </Card>
                 </div>
-
-                <div className="bg-secondary/50 rounded-lg p-4 md:p-6">
-                  <h3 className="font-semibold mb-3 text-sm md:text-base">Quick Start Guide</h3>
-                  <div className="grid gap-4 md:grid-cols-3 text-left">
-                    <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                        1
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Connect Calendar</p>
-                        <p className="text-xs text-muted-foreground">Authorize Google access</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                        2
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Link WhatsApp</p>
-                        <p className="text-xs text-muted-foreground">Verify your number</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                        3
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Start Scheduling</p>
-                        <p className="text-xs text-muted-foreground">Message the bot</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -150,4 +294,5 @@ const Dashboard = () => {
     </DashboardLayout>
   );
 };
+
 export default Dashboard;
