@@ -4,6 +4,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, MessageSquare } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -12,6 +14,16 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  const handleLogoClick = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="flex h-screen overflow-hidden flex-col">
@@ -41,12 +53,15 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+              <button 
+                onClick={handleLogoClick}
+                className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sidebar-primary to-accent flex items-center justify-center shadow-lg">
                   <MessageSquare className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-lg font-bold">Scheduly AI</span>
-              </div>
+              </button>
               <div className="w-10" /> {/* Spacer for balance */}
             </div>
           </>
