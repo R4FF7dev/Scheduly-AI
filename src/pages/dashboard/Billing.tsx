@@ -2,11 +2,10 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
+import { CreditCard, AlertCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "@/services/api.service";
 import { stripeService } from "@/services/stripe.service";
-import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Subscription {
@@ -17,18 +16,18 @@ interface Subscription {
   current_period_start: string;
   current_period_end: string;
   stripe_subscription_id: string | null;
+  created_at?: string;
 }
 
 const Billing = () => {
-  const { user } = useAuth();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate trial days remaining
+  // Calculate trial days from subscription creation date
   const getTrialDaysRemaining = () => {
-    if (!user?.created_at) return 14;
-    const created = new Date(user.created_at);
+    if (!subscription?.created_at) return 14;
+    const created = new Date(subscription.created_at);
     const now = new Date();
     const daysPassed = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
     return Math.max(0, 14 - daysPassed);
@@ -49,7 +48,10 @@ const Billing = () => {
       setSubscription(data);
     } catch (err: any) {
       console.error('Failed to fetch subscription:', err);
-      setError('Failed to load subscription data');
+      // Don't show error if subscription doesn't exist yet (new user)
+      if (err?.response?.status !== 404) {
+        setError('Failed to load subscription data');
+      }
     } finally {
       setLoading(false);
     }
@@ -89,7 +91,7 @@ const Billing = () => {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-8 flex items-center justify-center">
+        <div className="p-8 flex items-center justify-center min-h-[400px]">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </DashboardLayout>
@@ -113,7 +115,7 @@ const Billing = () => {
               <Button 
                 className="ml-4" 
                 size="sm"
-                onClick={() => window.location.href = '/landing#pricing'}
+                onClick={() => window.location.href = '/#pricing'}
               >
                 Choose Plan
               </Button>
@@ -147,16 +149,16 @@ const Billing = () => {
                     {subscription?.plan_name || 'Free Trial'} Plan
                   </CardTitle>
                   <CardDescription>
-                    {subscription?.meetings_limit || 'Unlimited'} meetings per month
+                    {subscription?.meetings_limit ? `${subscription.meetings_limit} meetings per month` : 'Getting started'}
                   </CardDescription>
                 </div>
-                {subscription && getStatusBadge(subscription.status)}
+                {subscription?.status && getStatusBadge(subscription.status)}
               </div>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2 mb-6">
                 <span className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {subscription ? getPlanPrice(subscription.plan_name) : '€0'}
+                  {subscription?.plan_name ? getPlanPrice(subscription.plan_name) : '€0'}
                 </span>
                 <span className="text-muted-foreground">/month</span>
               </div>
@@ -177,14 +179,14 @@ const Billing = () => {
                     </Button>
                     <Button 
                       variant="outline" 
-                      onClick={() => window.location.href = '/landing#pricing'}
+                      onClick={() => window.location.href = '/#pricing'}
                     >
                       Change Plan
                     </Button>
                   </>
                 ) : (
                   <Button 
-                    onClick={() => window.location.href = '/landing#pricing'}
+                    onClick={() => window.location.href = '/#pricing'}
                     className="flex-1"
                   >
                     Choose a Plan
@@ -212,7 +214,7 @@ const Billing = () => {
                     <div
                       className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all"
                       style={{
-                        width: subscription 
+                        width: subscription?.meetings_limit
                           ? `${Math.min((subscription.meetings_used / subscription.meetings_limit) * 100, 100)}%`
                           : '0%'
                       }}
