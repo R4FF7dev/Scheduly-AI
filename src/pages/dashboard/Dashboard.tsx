@@ -11,6 +11,26 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { isFullyConnected, isLoading } = useIntegrationStatus();
 
+  const fetchCalendarEvents = async () => {
+    try {
+      const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/operations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user?.id,
+          operation: 'list',
+          time_min: new Date().toISOString(),
+          time_max: new Date(Date.now() + 7*24*60*60*1000).toISOString()
+        })
+      });
+      const data = await response.json();
+      return data.items || [];
+    } catch (error) {
+      console.error('Failed to fetch calendar events:', error);
+      return [];
+    }
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
