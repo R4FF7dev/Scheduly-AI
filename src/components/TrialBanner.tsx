@@ -56,13 +56,14 @@ export const TrialBanner = () => {
         <div className="flex items-center gap-2 text-white">
           <span className="text-lg">🎉</span>
           <span className="text-sm font-medium">
-            Free Trial: {daysRemaining} days remaining to explore all features
+            <span className="hidden sm:inline">Free Trial: {daysRemaining} days remaining to explore all features</span>
+            <span className="sm:hidden">Trial: {daysRemaining} days left</span>
           </span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={() => navigate('/dashboard/billing')}
-            className="text-white text-sm font-semibold underline hover:no-underline transition-all"
+            className="text-white text-sm font-semibold underline hover:no-underline transition-all whitespace-nowrap"
           >
             Upgrade Now
           </button>

@@ -33,16 +33,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </Sheet>
             
             {/* Mobile Header with Menu Button */}
-            <div className="fixed top-12 left-0 right-0 z-40 bg-background border-b h-14 flex items-center px-4">
+            <div className="fixed top-12 left-0 right-0 z-40 bg-background border-b h-14 flex items-center justify-between px-4">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setSidebarOpen(true)}
-                className="mr-2"
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              <span className="text-lg font-bold">Scheduly AI</span>
+              <span className="absolute left-1/2 -translate-x-1/2 text-lg font-bold">Scheduly AI</span>
+              <div className="w-10" /> {/* Spacer for balance */}
             </div>
           </>
         )}
