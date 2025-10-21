@@ -3,7 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, MessageSquare } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -41,7 +41,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              <span className="absolute left-1/2 -translate-x-1/2 text-lg font-bold">Scheduly AI</span>
+              <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sidebar-primary to-accent flex items-center justify-center shadow-lg">
+                  <MessageSquare className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-lg font-bold">Scheduly AI</span>
+              </div>
               <div className="w-10" /> {/* Spacer for balance */}
             </div>
           </>
