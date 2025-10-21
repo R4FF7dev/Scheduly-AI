@@ -43,15 +43,15 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
   };
 
   return (
-    <div className="flex flex-col h-screen w-64 bg-sidebar border-r border-sidebar-border">
-      <div className="flex items-center gap-2 px-6 py-5 border-b border-sidebar-border">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sidebar-primary to-accent flex items-center justify-center shadow-lg">
-          <MessageSquare className="w-6 h-6 text-white" />
+      <div className="flex flex-col h-full w-64 bg-sidebar border-r border-sidebar-border">
+        <div className="flex items-center gap-2 px-6 py-5 border-b border-sidebar-border">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sidebar-primary to-accent flex items-center justify-center shadow-lg">
+            <MessageSquare className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-lg font-bold text-sidebar-foreground">
+            Scheduly AI
+          </span>
         </div>
-        <span className="text-lg font-bold text-sidebar-foreground">
-          Scheduly AI
-        </span>
-      </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">
         {navigation.map((item) => {

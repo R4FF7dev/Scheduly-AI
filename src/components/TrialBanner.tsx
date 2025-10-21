@@ -15,21 +15,23 @@ export const TrialBanner = () => {
   useEffect(() => {
     if (!isAuthenticated || !user?.id) return;
 
-    // Get or set trial start date
+    // Prefer created_at from backend user if available, else fall back to localStorage per-user
+    const maybeCreatedAt = (user as any)?.created_at as string | undefined;
     const trialStartKey = `${TRIAL_START_KEY}_${user.id}`;
-    let trialStart = localStorage.getItem(trialStartKey);
-    
-    if (!trialStart) {
-      trialStart = new Date().toISOString();
-      localStorage.setItem(trialStartKey, trialStart);
+
+    let startISO: string;
+    if (maybeCreatedAt) {
+      startISO = maybeCreatedAt;
+    } else {
+      const existing = localStorage.getItem(trialStartKey);
+      startISO = existing || new Date().toISOString();
+      if (!existing) localStorage.setItem(trialStartKey, startISO);
     }
 
-    // Calculate days remaining
-    const startDate = new Date(trialStart);
+    const startDate = new Date(startISO);
     const now = new Date();
     const daysPassed = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const remaining = Math.max(0, TRIAL_DURATION_DAYS - daysPassed);
-    
     setDaysRemaining(remaining);
   }, [isAuthenticated, user?.id]);
   

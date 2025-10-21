@@ -17,7 +17,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <div className="flex h-screen overflow-hidden flex-col">
       <TrialBanner />
-      
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
         {!isMobile && <Sidebar />}
