@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      user_integrations: {
+        Row: {
+          calendar_connected: boolean
+          created_at: string
+          id: string
+          onboarding_completed: boolean
+          onboarding_step: number
+          updated_at: string
+          user_id: string
+          whatsapp_connected: boolean
+        }
+        Insert: {
+          calendar_connected?: boolean
+          created_at?: string
+          id?: string
+          onboarding_completed?: boolean
+          onboarding_step?: number
+          updated_at?: string
+          user_id: string
+          whatsapp_connected?: boolean
+        }
+        Update: {
+          calendar_connected?: boolean
+          created_at?: string
+          id?: string
+          onboarding_completed?: boolean
+          onboarding_step?: number
+          updated_at?: string
+          user_id?: string
+          whatsapp_connected?: boolean
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          buffer_time: number
+          created_at: string
+          default_meeting_duration: number
+          id: string
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buffer_time?: number
+          created_at?: string
+          default_meeting_duration?: number
+          id?: string
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buffer_time?: number
+          created_at?: string
+          default_meeting_duration?: number
+          id?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
