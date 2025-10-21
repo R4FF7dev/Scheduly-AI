@@ -4,7 +4,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { TrialBanner } from "@/components/TrialBanner";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -16,9 +15,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <div className="flex h-screen overflow-hidden flex-col">
-      <div className="sticky top-0 z-30">
-        <TrialBanner />
-      </div>
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
         {!isMobile && (
