@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Plus, Clock, MapPin, Users } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Clock, MapPin, Users, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIntegrationStatus } from "@/hooks/useIntegrationStatus";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +25,8 @@ interface CalendarEvent {
 
 const Calendar = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { isCalendarConnected } = useIntegrationStatus();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
@@ -45,6 +49,10 @@ const Calendar = () => {
   }, [currentDate]);
 
   const fetchEvents = async () => {
+    if (!isCalendarConnected) {
+      return;
+    }
+    
     setLoading(true);
     try {
       const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/operations', {
@@ -61,7 +69,6 @@ const Calendar = () => {
       setEvents(data.items || []);
     } catch (error) {
       console.error('Failed to fetch calendar events:', error);
-      toast.error('Failed to load events');
     } finally {
       setLoading(false);
     }
@@ -147,6 +154,28 @@ const Calendar = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-8">
+        {!isCalendarConnected && (
+          <Card className="mb-6 border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <AlertCircle className="w-6 h-6 text-orange-600 flex-shrink-0 mt-1" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-orange-900 mb-2">Calendar Not Connected</h3>
+                  <p className="text-sm text-orange-700 mb-4">
+                    Connect your Google Calendar to view and manage your events from here.
+                  </p>
+                  <Button 
+                    onClick={() => navigate('/dashboard/onboarding')}
+                    className="bg-orange-600 hover:bg-orange-700"
+                  >
+                    Connect Calendar
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold mb-2">Calendar</h1>
