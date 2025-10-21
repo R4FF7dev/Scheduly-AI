@@ -83,7 +83,7 @@ const Dashboard = () => {
                       <p className="text-sm text-muted-foreground mb-4">
                         Schedule meetings via WhatsApp messages
                       </p>
-                      <Button onClick={() => navigate('/dashboard/onboarding')} className="w-full" variant="outline">
+                      <Button onClick={() => navigate('/dashboard/onboarding?step=whatsapp')} className="w-full" variant="outline">
                         Connect WhatsApp
                       </Button>
                     </CardContent>

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { calendarService } from '@/services/calendar.service';
 import { whatsappService } from '@/services/whatsapp.service';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Calendar, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 
 export const OnboardingWizard = () => {
-  const [step, setStep] = useState(1);
+  const [searchParams] = useSearchParams();
+  const initialStep = searchParams.get('step') === 'whatsapp' ? 2 : 1;
+  
+  const [step, setStep] = useState(initialStep);
   const [calendarConnected, setCalendarConnected] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -28,7 +31,12 @@ export const OnboardingWizard = () => {
         setStep(2);
       }
     } catch (error) {
-      alert('Failed to connect calendar: ' + (error as Error).message);
+      console.error('Calendar connection error:', error);
+      toast({
+        title: "Connection failed",
+        description: (error as Error).message || "Failed to connect calendar. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -100,6 +108,15 @@ export const OnboardingWizard = () => {
               </div>
             ))}
           </div>
+          {step > 1 && (
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/dashboard')}
+              className="mb-4"
+            >
+              ← Back to Dashboard
+            </Button>
+          )}
         </CardHeader>
 
         <CardContent className="text-center">
