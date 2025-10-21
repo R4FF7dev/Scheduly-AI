@@ -286,6 +286,46 @@ const Dashboard = () => {
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Quick Start Guide */}
+                <Card className="border-2 border-primary/20">
+                  <CardHeader>
+                    <CardTitle className="text-center">Quick Start Guide</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-6 md:grid-cols-3">
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold mx-auto mb-3">
+                          1
+                        </div>
+                        <h4 className="font-semibold mb-2">Connect Calendar</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Authorize Google access
+                        </p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold mx-auto mb-3">
+                          2
+                        </div>
+                        <h4 className="font-semibold mb-2">Link WhatsApp</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Verify your number
+                        </p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold mx-auto mb-3">
+                          3
+                        </div>
+                        <h4 className="font-semibold mb-2">Start Scheduling</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Message Scheduly AI agent
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </CardContent>
           </Card>
