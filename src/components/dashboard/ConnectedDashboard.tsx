@@ -7,9 +7,9 @@ export const ConnectedDashboard = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Meetings Today</CardTitle>
@@ -47,30 +47,30 @@ export const ConnectedDashboard = () => {
       {/* Upcoming Meetings */}
       <Card>
         <CardHeader>
-          <CardTitle>Upcoming Meetings</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Upcoming Meetings</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="space-y-3 md:space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 md:p-4 border rounded-lg">
               <div>
-                <h4 className="font-semibold">Team Standup</h4>
-                <p className="text-sm text-muted-foreground">Today at 10:00 AM</p>
+                <h4 className="font-semibold text-sm md:text-base">Team Standup</h4>
+                <p className="text-xs md:text-sm text-muted-foreground">Today at 10:00 AM</p>
               </div>
-              <Button variant="outline" size="sm">View</Button>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">View</Button>
             </div>
-            <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 md:p-4 border rounded-lg">
               <div>
-                <h4 className="font-semibold">Client Meeting</h4>
-                <p className="text-sm text-muted-foreground">Today at 2:00 PM</p>
+                <h4 className="font-semibold text-sm md:text-base">Client Meeting</h4>
+                <p className="text-xs md:text-sm text-muted-foreground">Today at 2:00 PM</p>
               </div>
-              <Button variant="outline" size="sm">View</Button>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">View</Button>
             </div>
-            <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 md:p-4 border rounded-lg">
               <div>
-                <h4 className="font-semibold">Project Review</h4>
-                <p className="text-sm text-muted-foreground">Tomorrow at 11:00 AM</p>
+                <h4 className="font-semibold text-sm md:text-base">Project Review</h4>
+                <p className="text-xs md:text-sm text-muted-foreground">Tomorrow at 11:00 AM</p>
               </div>
-              <Button variant="outline" size="sm">View</Button>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">View</Button>
             </div>
           </div>
           <Button 
@@ -86,10 +86,10 @@ export const ConnectedDashboard = () => {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
             <Button 
               onClick={() => navigate('/dashboard/meetings')} 
               className="h-auto flex-col items-start p-4"

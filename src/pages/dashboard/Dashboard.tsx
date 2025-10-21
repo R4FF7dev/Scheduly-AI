@@ -25,10 +25,10 @@ const Dashboard = () => {
   }
   return (
     <DashboardLayout>
-      <div className="p-8">
-        <div className="mb-8 animate-fade-up">
-          <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name}! 👋</h1>
-          <p className="text-muted-foreground">
+      <div className="p-4 md:p-8">
+        <div className="mb-6 md:mb-8 animate-fade-up">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome back, {user?.name}! 👋</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             {isFullyConnected 
               ? "Here's your dashboard overview" 
               : "Get started by connecting your integrations"}
@@ -36,14 +36,14 @@ const Dashboard = () => {
         </div>
 
         {/* Trial Status Banner */}
-        <Card className="mb-8 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 shadow-lg animate-fade-up">
-          <CardContent className="p-6">
+        <Card className="mb-6 md:mb-8 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 shadow-lg animate-fade-up">
+          <CardContent className="p-4 md:p-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
-                <h3 className="text-xl font-bold text-blue-900 mb-1">🎉 Free Trial Active</h3>
-                <p className="text-blue-700">14 days remaining - Enjoy unlimited features</p>
+                <h3 className="text-lg md:text-xl font-bold text-blue-900 mb-1">🎉 Free Trial Active</h3>
+                <p className="text-sm md:text-base text-blue-700">14 days remaining - Enjoy unlimited features</p>
               </div>
-              <Button onClick={() => navigate('/dashboard/billing')} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={() => navigate('/dashboard/billing')} className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto">
                 Upgrade Now
               </Button>
             </div>
@@ -55,14 +55,14 @@ const Dashboard = () => {
           <ConnectedDashboard />
         ) : (
           <Card className="shadow-lg animate-fade-up">
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-6 md:p-12 text-center">
               <div className="max-w-2xl mx-auto">
-                <h2 className="text-2xl font-bold mb-4">Get Started with Scheduly AI</h2>
-                <p className="text-muted-foreground mb-8">
+                <h2 className="text-xl md:text-2xl font-bold mb-4">Get Started with Scheduly AI</h2>
+                <p className="text-sm md:text-base text-muted-foreground mb-6 md:mb-8">
                   Connect your Google Calendar and WhatsApp to start managing meetings with AI
                 </p>
 
-                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                <div className="grid gap-4 md:grid-cols-2 md:gap-6 mb-6 md:mb-8">
                   <Card className="border-2 border-blue-200 hover:border-blue-400 transition-colors">
                     <CardContent className="p-6">
                       <Calendar className="w-12 h-12 mx-auto mb-4 text-blue-600" />
@@ -90,9 +90,9 @@ const Dashboard = () => {
                   </Card>
                 </div>
 
-                <div className="bg-secondary/50 rounded-lg p-6">
-                  <h3 className="font-semibold mb-3">Quick Start Guide</h3>
-                  <div className="grid md:grid-cols-3 gap-4 text-left">
+                <div className="bg-secondary/50 rounded-lg p-4 md:p-6">
+                  <h3 className="font-semibold mb-3 text-sm md:text-base">Quick Start Guide</h3>
+                  <div className="grid gap-4 md:grid-cols-3 text-left">
                     <div className="flex gap-3">
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
                         1

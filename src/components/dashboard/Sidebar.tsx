@@ -13,6 +13,10 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+interface SidebarProps {
+  onNavigate?: () => void;
+}
+
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Meetings", href: "/dashboard/meetings", icon: Calendar },
@@ -21,7 +25,7 @@ const navigation = [
   { name: "Support", href: "/dashboard/support", icon: HeadphonesIcon },
 ];
 
-export const Sidebar = () => {
+export const Sidebar = ({ onNavigate }: SidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -29,6 +33,11 @@ export const Sidebar = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+    onNavigate?.();
+  };
+
+  const handleNavClick = () => {
+    onNavigate?.();
   };
 
   return (
@@ -49,6 +58,7 @@ export const Sidebar = () => {
             <Link
               key={item.name}
               to={item.href}
+              onClick={handleNavClick}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                 isActive
