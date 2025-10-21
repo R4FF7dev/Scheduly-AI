@@ -1,12 +1,12 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Clock } from "lucide-react";
+import { X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
 
 export const TrialBanner = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [dismissed, setDismissed] = useState(false);
   
   // Safely get auth - handle case where provider isn't ready
   let user = null;
@@ -21,8 +21,9 @@ export const TrialBanner = () => {
     return null;
   }
 
-  // Don't show banner if not authenticated or on auth/landing pages
+  // Don't show banner if not authenticated or on auth/landing pages or dismissed
   if (!isAuthenticated || 
+      dismissed ||
       location.pathname === '/auth' || 
       location.pathname === '/' ||
       location.pathname === '/landing') {
@@ -50,21 +51,30 @@ export const TrialBanner = () => {
   }
 
   return (
-    <Alert className="rounded-none border-x-0 border-t-0 bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
-      <Clock className="h-4 w-4 text-blue-600" />
-      <AlertDescription className="flex items-center justify-between">
-        <span className="text-blue-900">
-          <strong>Free Trial:</strong> {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining
-        </span>
-        <Button
-          size="sm"
-          variant="outline"
-          className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
-          onClick={() => navigate('/dashboard/billing')}
-        >
-          Upgrade Now
-        </Button>
-      </AlertDescription>
-    </Alert>
+    <div className="relative w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 border-0">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-white">
+          <span className="text-lg">🎉</span>
+          <span className="text-sm font-medium">
+            Free Trial: {daysRemaining} days remaining to explore all features
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/dashboard/billing')}
+            className="text-white text-sm font-semibold underline hover:no-underline transition-all"
+          >
+            Upgrade Now
+          </button>
+          <button
+            onClick={() => setDismissed(true)}
+            className="text-white hover:bg-white/20 rounded p-1 transition-all"
+            aria-label="Dismiss banner"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
