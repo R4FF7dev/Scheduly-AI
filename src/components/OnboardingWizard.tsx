@@ -8,15 +8,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, MessageSquare, CheckCircle, ArrowLeft, Settings, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { whatsappService } from "@/services/whatsapp.service";
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 
 export const OnboardingWizard = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   
-  // User state
-  const [userId, setUserId] = useState<string | null>(null);
+  // Guard: Redirect if not authenticated
+  if (!user) {
+    navigate('/auth');
+    return null;
+  }
+  
   const [userName, setUserName] = useState<string>("");
   
   // Determine initial step from query params
@@ -42,21 +49,15 @@ export const OnboardingWizard = () => {
   const [bufferTime, setBufferTime] = useState("15");
   const [timezone, setTimezone] = useState("");
 
-  // Get user on mount
+  // Get user info on mount
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-        setUserName(user.user_metadata?.full_name || user.email?.split('@')[0] || "");
-      }
-    };
+    if (user) {
+      setUserName(user.name || user.email?.split('@')[0] || "");
+    }
     
     // Auto-detect timezone
     setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-    
-    getUser();
-  }, []);
+  }, [user]);
 
   // Code expiry timer
   useEffect(() => {
@@ -77,21 +78,12 @@ export const OnboardingWizard = () => {
   }, [step, codeExpiry]);
 
   const handleConnectCalendar = async () => {
-    if (!userId) {
-      toast({
-        title: "Error",
-        description: "User not found. Please log in again.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setLoading(true);
     try {
       const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId })
+        body: JSON.stringify({ user_id: user.id })
       });
       
       const data = await response.json();
@@ -121,19 +113,11 @@ export const OnboardingWizard = () => {
   };
 
   const handleConnectWhatsApp = async () => {
-    if (!phoneNumber || phoneNumber.length < 10) {
+    // Add basic E.164 validation
+    if (!phoneNumber || !phoneNumber.startsWith('+')) {
       toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid phone number with country code",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!userId) {
-      toast({
-        title: "Error",
-        description: "User not found. Please log in again.",
+        title: "Invalid phone number",
+        description: "Phone number must start with + and country code (e.g., +1234567890)",
         variant: "destructive"
       });
       return;
@@ -141,34 +125,22 @@ export const OnboardingWizard = () => {
 
     setLoading(true);
     try {
-      const response = await fetch('https://n8n.schedulyai.com/webhook/whatsapp/connect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          user_id: userId,
-          phone_number: phoneNumber 
-        })
-      });
+      const response = await whatsappService.connect(phoneNumber, user.id);
       
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to send verification code');
+      if (response.success) {
+        toast({
+          title: "Code sent!",
+          description: `Check your WhatsApp at ${phoneNumber}`,
+        });
+        
+        // Set code expiry to 10 minutes from now
+        setCodeExpiry(Date.now() + 10 * 60 * 1000);
+        setStep(3);
       }
-      
+    } catch (error) {
       toast({
-        title: "Success!",
-        description: "Check your WhatsApp for the verification code!"
-      });
-      
-      // Set code expiry to 10 minutes from now
-      setCodeExpiry(Date.now() + 10 * 60 * 1000);
-      setStep(3);
-    } catch (error: any) {
-      console.error('WhatsApp connection error:', error);
-      toast({
-        title: "Connection Failed",
-        description: error.message || "Unable to send verification code. Please try again.",
+        title: "Connection failed",
+        description: (error as Error).message,
         variant: "destructive"
       });
     } finally {
@@ -186,45 +158,24 @@ export const OnboardingWizard = () => {
       return;
     }
 
-    if (!userId) {
-      toast({
-        title: "Error",
-        description: "User not found. Please log in again.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setLoading(true);
     try {
-      const response = await fetch('https://n8n.schedulyai.com/webhook/whatsapp/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          user_id: userId,
-          verification_code: verificationCode 
-        })
-      });
+      const response = await whatsappService.verify(verificationCode, user.id);
       
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Verification failed');
+      if (response.success) {
+        await updateIntegrationStatus('whatsapp_connected', true);
+        
+        toast({
+          title: "Verified!",
+          description: "WhatsApp connected successfully"
+        });
+        
+        setStep(4);
       }
-      
-      await updateIntegrationStatus('whatsapp_connected', true);
-      
+    } catch (error) {
       toast({
-        title: "Verified!",
-        description: "WhatsApp connected successfully"
-      });
-      
-      setStep(4);
-    } catch (error: any) {
-      console.error('WhatsApp verification error:', error);
-      toast({
-        title: "Verification Failed",
-        description: error.message || "Invalid or expired code. Please try again.",
+        title: "Verification failed",
+        description: (error as Error).message,
         variant: "destructive"
       });
     } finally {
@@ -237,22 +188,13 @@ export const OnboardingWizard = () => {
   };
 
   const handleCompleteSetup = async () => {
-    if (!userId) {
-      toast({
-        title: "Error",
-        description: "User not found. Please log in again.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setLoading(true);
     try {
       // Save preferences
       const { error: prefsError } = await supabase
         .from('user_preferences')
         .upsert({
-          user_id: userId,
+          user_id: user.id,
           default_meeting_duration: parseInt(meetingDuration),
           buffer_time: parseInt(bufferTime),
           timezone: timezone
@@ -264,7 +206,7 @@ export const OnboardingWizard = () => {
       const { error: integrationsError } = await supabase
         .from('user_integrations')
         .upsert({
-          user_id: userId,
+          user_id: user.id,
           onboarding_completed: true,
           onboarding_step: 4
         });
@@ -290,12 +232,10 @@ export const OnboardingWizard = () => {
   };
 
   const updateIntegrationStatus = async (field: string, value: boolean) => {
-    if (!userId) return;
-    
     await supabase
       .from('user_integrations')
       .upsert({
-        user_id: userId,
+        user_id: user.id,
         [field]: value,
         onboarding_step: step
       });
