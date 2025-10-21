@@ -40,7 +40,6 @@ const makeRequest = async (url: string, options: RequestOptions = {}) => {
   
   try {
     const response = await fetch(url, config);
-    const data = await response.json();
     
     // Handle token refresh if unauthorized
     if (response.status === 401 && !options.isRetry) {
@@ -54,6 +53,24 @@ const makeRequest = async (url: string, options: RequestOptions = {}) => {
       }
     }
     
+    // Check if response has content and is JSON
+    const contentType = response.headers.get('content-type');
+    const hasJsonContent = contentType && contentType.includes('application/json');
+    
+    // Try to parse JSON if content exists
+    let data;
+    try {
+      const text = await response.text();
+      if (text && text.trim().length > 0) {
+        data = JSON.parse(text);
+      } else {
+        data = { success: response.ok };
+      }
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      throw new Error(`Invalid response from server. Please check your n8n webhook configuration.`);
+    }
+    
     if (!response.ok) {
       throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
     }
@@ -61,7 +78,10 @@ const makeRequest = async (url: string, options: RequestOptions = {}) => {
     return data;
   } catch (error) {
     console.error('API Error:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Network request failed. Please check your connection.');
   }
 };
 

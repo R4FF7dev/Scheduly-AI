@@ -3,7 +3,16 @@ import { API_ENDPOINTS } from '@/config/api.config';
 
 export const whatsappService = {
   connect: async (phoneNumber: string) => {
-    return api.post(API_ENDPOINTS.whatsapp.connect, { phoneNumber }, { skipAuth: true });
+    console.log('WhatsApp connect - sending to:', API_ENDPOINTS.whatsapp.connect);
+    console.log('WhatsApp connect - payload:', { phoneNumber });
+    try {
+      const response = await api.post(API_ENDPOINTS.whatsapp.connect, { phoneNumber }, { skipAuth: true });
+      console.log('WhatsApp connect - response:', response);
+      return response;
+    } catch (error) {
+      console.error('WhatsApp connect - error:', error);
+      throw error;
+    }
   },
   
   verify: async (verificationCode: string, phoneNumber: string) => {
