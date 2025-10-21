@@ -4,13 +4,12 @@ import { Calendar, Clock, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-
 const Dashboard = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const navigate = useNavigate();
-
-  return (
-    <DashboardLayout>
+  return <DashboardLayout>
       <div className="p-8">
         <div className="mb-8 animate-fade-up">
           <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name}! 👋</h1>
@@ -25,10 +24,7 @@ const Dashboard = () => {
                 <h3 className="text-xl font-bold text-blue-900 mb-1">🎉 Free Trial Active</h3>
                 <p className="text-blue-700">14 days remaining - Enjoy unlimited features</p>
               </div>
-              <Button 
-                onClick={() => navigate('/dashboard/billing')}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
+              <Button onClick={() => navigate('/dashboard/billing')} className="bg-blue-600 hover:bg-blue-700">
                 Upgrade Now
               </Button>
             </div>
@@ -52,11 +48,7 @@ const Dashboard = () => {
                     <p className="text-sm text-muted-foreground mb-4">
                       Sync your meetings and let AI manage your schedule
                     </p>
-                    <Button 
-                      onClick={() => navigate('/dashboard/onboarding')}
-                      className="w-full"
-                      variant="outline"
-                    >
+                    <Button onClick={() => navigate('/dashboard/onboarding')} className="w-full" variant="outline">
                       Connect Calendar
                     </Button>
                   </CardContent>
@@ -65,15 +57,11 @@ const Dashboard = () => {
                 <Card className="border-2 border-green-200 hover:border-green-400 transition-colors">
                   <CardContent className="p-6">
                     <MessageCircle className="w-12 h-12 mx-auto mb-4 text-green-600" />
-                    <h3 className="font-semibold mb-2">WhatsApp Bot</h3>
+                    <h3 className="font-semibold mb-2">Scheduly AI agent</h3>
                     <p className="text-sm text-muted-foreground mb-4">
                       Schedule meetings via WhatsApp messages
                     </p>
-                    <Button 
-                      onClick={() => navigate('/dashboard/onboarding')}
-                      className="w-full"
-                      variant="outline"
-                    >
+                    <Button onClick={() => navigate('/dashboard/onboarding')} className="w-full" variant="outline">
                       Connect WhatsApp
                     </Button>
                   </CardContent>
@@ -116,8 +104,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
-  );
+    </DashboardLayout>;
 };
-
 export default Dashboard;
