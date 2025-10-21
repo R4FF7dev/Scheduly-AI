@@ -147,4 +147,38 @@ All colors MUST be HSL.
   .prose strong {
     @apply font-semibold text-foreground;
   }
+
+  /* Phone input styling */
+  .phone-input {
+    width: 100%;
+  }
+
+  .phone-input .PhoneInputInput {
+    flex: 1;
+    height: 2.5rem;
+    width: 100%;
+    border-radius: 0.375rem;
+    border: 1px solid hsl(var(--input));
+    background-color: hsl(var(--background));
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: hsl(var(--foreground));
+    transition: all 0.2s;
+  }
+
+  .phone-input .PhoneInputInput:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: hsl(var(--ring));
+    ring-offset: 2px;
+  }
+
+  .phone-input .PhoneInputInput::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .phone-input .PhoneInputCountry {
+    margin-right: 0.5rem;
+  }
 }

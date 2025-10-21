@@ -1,41 +1,119 @@
-import { useState, useEffect } from 'react';
-import { calendarService } from '@/services/calendar.service';
-import { whatsappService } from '@/services/whatsapp.service';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Calendar, MessageCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar, MessageSquare, CheckCircle, ArrowLeft, Settings, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 export const OnboardingWizard = () => {
-  const [searchParams] = useSearchParams();
-  const initialStep = searchParams.get('step') === 'whatsapp' ? 2 : 1;
-  
-  const [step, setStep] = useState(initialStep);
-  const [calendarConnected, setCalendarConnected] = useState(false);
-  const [whatsappNumber, setWhatsappNumber] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  
+  // User state
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("");
+  
+  // Determine initial step from query params
+  const queryStep = searchParams.get('step');
+  const getInitialStep = () => {
+    if (queryStep === 'whatsapp') return 2;
+    if (queryStep === '2') return 2;
+    return 1;
+  };
+  
+  const [step, setStep] = useState(getInitialStep());
+  const [loading, setLoading] = useState(false);
+  
+  // Step 2: WhatsApp
+  const [phoneNumber, setPhoneNumber] = useState("");
+  
+  // Step 3: Verification
+  const [verificationCode, setVerificationCode] = useState("");
+  const [codeExpiry, setCodeExpiry] = useState<number | null>(null);
+  
+  // Step 4: Preferences
+  const [meetingDuration, setMeetingDuration] = useState("30");
+  const [bufferTime, setBufferTime] = useState("15");
+  const [timezone, setTimezone] = useState("");
+
+  // Get user on mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        setUserName(user.user_metadata?.full_name || user.email?.split('@')[0] || "");
+      }
+    };
+    
+    // Auto-detect timezone
+    setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    
+    getUser();
+  }, []);
+
+  // Code expiry timer
+  useEffect(() => {
+    if (step === 3 && codeExpiry) {
+      const interval = setInterval(() => {
+        const remaining = Math.max(0, codeExpiry - Date.now());
+        if (remaining === 0) {
+          clearInterval(interval);
+          toast({
+            title: "Code Expired",
+            description: "Please request a new verification code",
+            variant: "destructive"
+          });
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [step, codeExpiry]);
 
   const handleConnectCalendar = async () => {
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "User not found. Please log in again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await calendarService.connect();
-      if (response.authUrl) {
-        window.location.href = response.authUrl;
+      const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to connect calendar');
+      }
+      
+      if (data.authUrl) {
+        // Redirect to Google OAuth
+        window.location.href = data.authUrl;
       } else {
-        setCalendarConnected(true);
+        // Already connected
+        await updateIntegrationStatus('calendar_connected', true);
         setStep(2);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Calendar connection error:', error);
       toast({
-        title: "Connection failed",
-        description: (error as Error).message || "Failed to connect calendar. Please try again.",
-        variant: "destructive",
+        title: "Calendar Connection Failed",
+        description: error.message || "Unable to connect calendar. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
@@ -43,23 +121,55 @@ export const OnboardingWizard = () => {
   };
 
   const handleConnectWhatsApp = async () => {
+    if (!phoneNumber || phoneNumber.length < 10) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please enter a valid phone number with country code",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "User not found. Please log in again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await whatsappService.connect(whatsappNumber);
-      console.log('WhatsApp connect response:', response);
-      
-      toast({
-        title: "Verification code sent!",
-        description: `A verification code has been sent to ${whatsappNumber} via WhatsApp.`,
+      const response = await fetch('https://n8n.schedulyai.com/webhook/whatsapp/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          user_id: userId,
+          phone_number: phoneNumber 
+        })
       });
       
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to send verification code');
+      }
+      
+      toast({
+        title: "Success!",
+        description: "Check your WhatsApp for the verification code!"
+      });
+      
+      // Set code expiry to 10 minutes from now
+      setCodeExpiry(Date.now() + 10 * 60 * 1000);
       setStep(3);
-    } catch (error) {
+    } catch (error: any) {
       console.error('WhatsApp connection error:', error);
       toast({
-        title: "Connection failed",
-        description: (error as Error).message || "Failed to send verification code. Please try again.",
-        variant: "destructive",
+        title: "Connection Failed",
+        description: error.message || "Unable to send verification code. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
@@ -67,145 +177,416 @@ export const OnboardingWizard = () => {
   };
 
   const handleVerifyWhatsApp = async () => {
+    if (verificationCode.length !== 6) {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter the 6-digit verification code",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "User not found. Please log in again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await whatsappService.verify(verificationCode, whatsappNumber);
-      console.log('WhatsApp verify response:', response);
+      const response = await fetch('https://n8n.schedulyai.com/webhook/whatsapp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          user_id: userId,
+          verification_code: verificationCode 
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Verification failed');
+      }
+      
+      await updateIntegrationStatus('whatsapp_connected', true);
       
       toast({
-        title: "WhatsApp verified!",
-        description: "Your WhatsApp number has been successfully verified.",
+        title: "Verified!",
+        description: "WhatsApp connected successfully"
       });
       
       setStep(4);
-    } catch (error) {
+    } catch (error: any) {
       console.error('WhatsApp verification error:', error);
       toast({
-        title: "Verification failed",
-        description: (error as Error).message || "Invalid verification code. Please try again.",
-        variant: "destructive",
+        title: "Verification Failed",
+        description: error.message || "Invalid or expired code. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const completeOnboarding = () => {
-    navigate('/dashboard');
+  const handleResendCode = async () => {
+    await handleConnectWhatsApp();
   };
 
+  const handleCompleteSetup = async () => {
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "User not found. Please log in again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Save preferences
+      const { error: prefsError } = await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: userId,
+          default_meeting_duration: parseInt(meetingDuration),
+          buffer_time: parseInt(bufferTime),
+          timezone: timezone
+        });
+
+      if (prefsError) throw prefsError;
+
+      // Update integrations status
+      const { error: integrationsError } = await supabase
+        .from('user_integrations')
+        .upsert({
+          user_id: userId,
+          onboarding_completed: true,
+          onboarding_step: 4
+        });
+
+      if (integrationsError) throw integrationsError;
+
+      toast({
+        title: "Setup Complete! 🎉",
+        description: "Welcome to Scheduly AI"
+      });
+
+      navigate('/dashboard');
+    } catch (error: any) {
+      console.error('Setup completion error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save preferences. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateIntegrationStatus = async (field: string, value: boolean) => {
+    if (!userId) return;
+    
+    await supabase
+      .from('user_integrations')
+      .upsert({
+        user_id: userId,
+        [field]: value,
+        onboarding_step: step
+      });
+  };
+
+  const progress = (step / 4) * 100;
+  const remainingTime = codeExpiry ? Math.max(0, Math.floor((codeExpiry - Date.now()) / 1000)) : 0;
+  const minutes = Math.floor(remainingTime / 60);
+  const seconds = remainingTime % 60;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary flex items-center justify-center p-6">
-      <Card className="max-w-2xl w-full">
-        <CardHeader>
-          <div className="flex justify-between mb-6">
-            {[1, 2, 3, 4].map(num => (
-              <div key={num} className={`flex items-center ${step >= num ? 'text-primary' : 'text-muted-foreground'}`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${step >= num ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-                  {num}
-                </div>
-                {num < 4 && <div className={`w-16 h-0.5 mx-2 ${step > num ? 'bg-primary' : 'bg-secondary'}`} />}
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        <Card className="shadow-xl">
+          <CardHeader>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                {step > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setStep(step - 1)}
+                    disabled={loading}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                )}
+                <CardTitle>Setup Your Account</CardTitle>
               </div>
-            ))}
-          </div>
-          {step > 1 && (
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/dashboard')}
-              className="mb-4"
-            >
-              ← Back to Dashboard
-            </Button>
-          )}
-        </CardHeader>
-
-        <CardContent className="text-center">
-          {step === 1 && (
-            <div className="animate-fade-up">
-              <Calendar className="w-20 h-20 mx-auto mb-6 text-primary" />
-              <CardTitle className="text-2xl mb-4">Connect Your Google Calendar</CardTitle>
-              <CardDescription className="mb-6">
-                Allow Scheduly AI to access your calendar to manage meetings
-              </CardDescription>
-              <Button
-                onClick={handleConnectCalendar}
-                disabled={loading}
-                size="lg"
-                className="w-full max-w-xs"
-              >
-                {loading ? 'Connecting...' : 'Connect Google Calendar'}
-              </Button>
+              <span className="text-sm text-muted-foreground">Step {step} of 4</span>
             </div>
-          )}
-
-          {step === 2 && (
-            <div className="animate-fade-up">
-              <MessageCircle className="w-20 h-20 mx-auto mb-6 text-primary" />
-              <CardTitle className="text-2xl mb-4">Connect Your WhatsApp</CardTitle>
-              <CardDescription className="mb-6">
-                Enter your WhatsApp number to receive scheduling commands
-              </CardDescription>
-              <Input
-                type="tel"
-                value={whatsappNumber}
-                onChange={(e) => setWhatsappNumber(e.target.value)}
-                placeholder="+1234567890"
-                className="mb-4 max-w-xs mx-auto"
-              />
-              <Button
-                onClick={handleConnectWhatsApp}
-                disabled={loading || !whatsappNumber}
-                size="lg"
-                className="w-full max-w-xs"
-              >
-                {loading ? 'Sending Code...' : 'Send Verification Code'}
-              </Button>
+            <Progress value={progress} className="mb-4" />
+            
+            {/* Progress circles */}
+            <div className="flex justify-between items-center mb-6">
+              {[1, 2, 3, 4].map((s) => (
+                <div key={s} className="flex flex-col items-center gap-2">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    s < step ? 'bg-primary text-primary-foreground' :
+                    s === step ? 'bg-primary/20 text-primary border-2 border-primary' :
+                    'bg-muted text-muted-foreground'
+                  }`}>
+                    {s < step ? <CheckCircle className="h-5 w-5" /> : s}
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {s === 1 && 'Calendar'}
+                    {s === 2 && 'Phone'}
+                    {s === 3 && 'Verify'}
+                    {s === 4 && 'Preferences'}
+                  </span>
+                </div>
+              ))}
             </div>
-          )}
+          </CardHeader>
 
-          {step === 3 && (
-            <div className="animate-fade-up">
-              <MessageCircle className="w-20 h-20 mx-auto mb-6 text-primary" />
-              <CardTitle className="text-2xl mb-4">Verify Your Number</CardTitle>
-              <CardDescription className="mb-6">
-                Enter the verification code sent to {whatsappNumber}
-              </CardDescription>
-              <Input
-                type="text"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-                placeholder="123456"
-                className="mb-4 max-w-xs mx-auto"
-              />
-              <Button
-                onClick={handleVerifyWhatsApp}
-                disabled={loading || !verificationCode}
-                size="lg"
-                className="w-full max-w-xs"
-              >
-                {loading ? 'Verifying...' : 'Verify'}
-              </Button>
-            </div>
-          )}
+          <CardContent className="space-y-6">
+            {/* Step 1: Calendar */}
+            {step === 1 && (
+              <div className="space-y-6 text-center">
+                <div className="flex justify-center">
+                  <Calendar className="h-20 w-20 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">
+                    Welcome{userName && `, ${userName}`}! 👋
+                  </h2>
+                  <CardDescription className="text-base">
+                    Let's connect your Google Calendar to start managing your meetings
+                  </CardDescription>
+                </div>
+                <div className="bg-muted p-4 rounded-lg text-sm text-left">
+                  <p className="font-semibold mb-2">Why we need this:</p>
+                  <p className="text-muted-foreground">
+                    We'll sync your calendar to automatically schedule meetings and avoid conflicts
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleConnectCalendar} 
+                  size="lg" 
+                  className="w-full"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Connect Google Calendar
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
 
-          {step === 4 && (
-            <div className="animate-fade-up">
-              <CheckCircle className="w-20 h-20 mx-auto mb-6 text-green-500" />
-              <CardTitle className="text-2xl mb-4">All Set!</CardTitle>
-              <CardDescription className="mb-6">
-                Your Scheduly AI is ready to use. Start scheduling meetings via WhatsApp!
-              </CardDescription>
-              <Button
-                onClick={completeOnboarding}
-                size="lg"
-                className="w-full max-w-xs"
-              >
-                Go to Dashboard
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            {/* Step 2: WhatsApp Phone */}
+            {step === 2 && (
+              <div className="space-y-6">
+                <div className="flex justify-center">
+                  <MessageSquare className="h-20 w-20 text-primary" />
+                </div>
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold mb-2">Connect WhatsApp</h2>
+                  <CardDescription className="text-base">
+                    Enter your phone number to receive notifications
+                  </CardDescription>
+                </div>
+                <div className="bg-muted p-4 rounded-lg text-sm">
+                  <p className="font-semibold mb-2">Why we need this:</p>
+                  <p className="text-muted-foreground">
+                    Get instant WhatsApp notifications for meeting confirmations and reminders
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Phone Number</label>
+                    <PhoneInput
+                      international
+                      defaultCountry="US"
+                      value={phoneNumber}
+                      onChange={(value) => setPhoneNumber(value || "")}
+                      className="phone-input"
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleConnectWhatsApp} 
+                    size="lg" 
+                    className="w-full"
+                    disabled={loading || !phoneNumber || phoneNumber.length < 10}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending Code...
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        Send Verification Code
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Verification */}
+            {step === 3 && (
+              <div className="space-y-6">
+                <div className="flex justify-center">
+                  <CheckCircle className="h-20 w-20 text-primary" />
+                </div>
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold mb-2">Verify Your Number</h2>
+                  <CardDescription className="text-base">
+                    Enter the 6-digit code sent to {phoneNumber}
+                  </CardDescription>
+                </div>
+                {remainingTime > 0 && (
+                  <div className="text-center text-sm text-muted-foreground">
+                    Code expires in {minutes}:{seconds.toString().padStart(2, '0')}
+                  </div>
+                )}
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Verification Code</label>
+                    <Input
+                      type="text"
+                      maxLength={6}
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="000000"
+                      className="text-center text-2xl tracking-widest"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleVerifyWhatsApp} 
+                    size="lg" 
+                    className="w-full"
+                    disabled={loading || verificationCode.length !== 6}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      'Verify Code'
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={handleResendCode}
+                    className="w-full"
+                    disabled={loading}
+                  >
+                    Resend Code
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Preferences */}
+            {step === 4 && (
+              <div className="space-y-6">
+                <div className="flex justify-center">
+                  <Settings className="h-20 w-20 text-primary" />
+                </div>
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold mb-2">Set Your Preferences</h2>
+                  <CardDescription className="text-base">
+                    Customize your meeting defaults
+                  </CardDescription>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Default Meeting Duration
+                    </label>
+                    <Select value={meetingDuration} onValueChange={setMeetingDuration}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="45">45 minutes</SelectItem>
+                        <SelectItem value="60">60 minutes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Buffer Time Between Meetings
+                    </label>
+                    <Select value={bufferTime} onValueChange={setBufferTime}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">No buffer</SelectItem>
+                        <SelectItem value="5">5 minutes</SelectItem>
+                        <SelectItem value="10">10 minutes</SelectItem>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Timezone
+                    </label>
+                    <Input
+                      value={timezone}
+                      onChange={(e) => setTimezone(e.target.value)}
+                      placeholder="Auto-detected timezone"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Auto-detected: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                    </p>
+                  </div>
+                  
+                  <Button 
+                    onClick={handleCompleteSetup} 
+                    size="lg" 
+                    className="w-full"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Complete Setup
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
