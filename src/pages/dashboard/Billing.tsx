@@ -1,16 +1,101 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, Download, TrendingUp } from "lucide-react";
+import { CreditCard, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { api } from "@/services/api.service";
+import { stripeService } from "@/services/stripe.service";
+import { useAuth } from "@/contexts/AuthContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const invoices = [
-  { id: "INV-001", date: "Jan 1, 2024", amount: "$49.00", status: "paid" },
-  { id: "INV-002", date: "Dec 1, 2023", amount: "$49.00", status: "paid" },
-  { id: "INV-003", date: "Nov 1, 2023", amount: "$49.00", status: "paid" },
-];
+interface Subscription {
+  plan_name: string;
+  status: string;
+  meetings_limit: number;
+  meetings_used: number;
+  current_period_start: string;
+  current_period_end: string;
+  stripe_subscription_id: string | null;
+}
 
 const Billing = () => {
+  const { user } = useAuth();
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Calculate trial days remaining
+  const getTrialDaysRemaining = () => {
+    if (!user?.created_at) return 14;
+    const created = new Date(user.created_at);
+    const now = new Date();
+    const daysPassed = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, 14 - daysPassed);
+  };
+
+  const trialDaysRemaining = getTrialDaysRemaining();
+  const isTrialExpired = trialDaysRemaining === 0 && !subscription?.stripe_subscription_id;
+
+  useEffect(() => {
+    fetchSubscription();
+  }, []);
+
+  const fetchSubscription = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await api.get('/user/subscription');
+      setSubscription(data);
+    } catch (err: any) {
+      console.error('Failed to fetch subscription:', err);
+      setError('Failed to load subscription data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    try {
+      await stripeService.createPortalSession();
+    } catch (err) {
+      console.error('Failed to open portal:', err);
+      alert('Failed to open billing portal. Please try again.');
+    }
+  };
+
+  const getPlanPrice = (planName: string) => {
+    const prices: Record<string, string> = {
+      Starter: "€29",
+      Professional: "€49",
+      Enterprise: "€99"
+    };
+    return prices[planName] || "€0";
+  };
+
+  const getStatusBadge = (status: string) => {
+    if (status === 'active') {
+      return <Badge className="bg-green-500">Active</Badge>;
+    }
+    if (status === 'trialing') {
+      return <Badge className="bg-blue-500">Trial</Badge>;
+    }
+    if (status === 'cancelled') {
+      return <Badge variant="destructive">Cancelled</Badge>;
+    }
+    return <Badge variant="secondary">{status}</Badge>;
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="p-8 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="p-8">
@@ -19,128 +104,153 @@ const Billing = () => {
           <p className="text-muted-foreground">Manage your subscription and billing</p>
         </div>
 
+        {/* Trial Expired Alert */}
+        {isTrialExpired && (
+          <Alert className="mb-6 border-red-500 bg-red-50 animate-fade-up">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              Your free trial has ended. Please choose a plan to continue using Scheduly AI.
+              <Button 
+                className="ml-4" 
+                size="sm"
+                onClick={() => window.location.href = '/landing#pricing'}
+              >
+                Choose Plan
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Trial Active Banner */}
+        {trialDaysRemaining > 0 && !subscription?.stripe_subscription_id && (
+          <Alert className="mb-6 border-blue-500 bg-blue-50 animate-fade-up">
+            <AlertCircle className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              🎉 Free trial: {trialDaysRemaining} days remaining. Upgrade anytime to avoid interruption.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-6 mb-8">
-          <Card className="lg:col-span-2 shadow-lg animate-fade-up" style={{ animationDelay: "0.1s" }}>
+          {/* Current Plan */}
+          <Card className="lg:col-span-2 shadow-lg animate-fade-up">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-2xl">Professional Plan</CardTitle>
-                  <CardDescription>100 meetings per month</CardDescription>
+                  <CardTitle className="text-2xl">
+                    {subscription?.plan_name || 'Free Trial'} Plan
+                  </CardTitle>
+                  <CardDescription>
+                    {subscription?.meetings_limit || 'Unlimited'} meetings per month
+                  </CardDescription>
                 </div>
-                <Badge className="bg-gradient-to-r from-primary to-accent text-white">
-                  Active
-                </Badge>
+                {subscription && getStatusBadge(subscription.status)}
               </div>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2 mb-6">
                 <span className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  $49
+                  {subscription ? getPlanPrice(subscription.plan_name) : '€0'}
                 </span>
                 <span className="text-muted-foreground">/month</span>
               </div>
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Next billing date</span>
-                  <span className="font-medium">February 1, 2024</span>
+
+              {subscription?.current_period_end && (
+                <div className="space-y-2 mb-6">
+                  <p className="text-sm text-muted-foreground">
+                    Current period ends: {new Date(subscription.current_period_end).toLocaleDateString()}
+                  </p>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Meetings used</span>
-                  <span className="font-medium">24 / 100</span>
-                </div>
-              </div>
-              <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
-                <div className="h-full w-[24%] bg-gradient-to-r from-primary to-accent" />
+              )}
+
+              <div className="flex gap-3">
+                {subscription?.stripe_subscription_id ? (
+                  <>
+                    <Button onClick={handleManageBilling} className="flex-1">
+                      Manage Billing
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => window.location.href = '/landing#pricing'}
+                    >
+                      Change Plan
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    onClick={() => window.location.href = '/landing#pricing'}
+                    className="flex-1"
+                  >
+                    Choose a Plan
+                  </Button>
+                )}
               </div>
             </CardContent>
-            <CardFooter className="flex gap-3">
-              <Button variant="outline">Change Plan</Button>
-              <Button variant="ghost">Cancel Subscription</Button>
-            </CardFooter>
           </Card>
 
+          {/* Usage Stats */}
           <Card className="shadow-lg animate-fade-up" style={{ animationDelay: "0.2s" }}>
             <CardHeader>
-              <CardTitle>Usage Stats</CardTitle>
+              <CardTitle>Usage This Month</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10">
+            <CardContent>
+              <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">This Month</p>
-                  <p className="text-2xl font-bold">24</p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-primary" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Average per day</span>
-                  <span className="font-medium">1.7</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Peak day</span>
-                  <span className="font-medium">5 meetings</span>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Meetings</span>
+                    <span className="text-sm font-medium">
+                      {subscription?.meetings_used || 0} / {subscription?.meetings_limit || '∞'}
+                    </span>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all"
+                      style={{
+                        width: subscription 
+                          ? `${Math.min((subscription.meetings_used / subscription.meetings_limit) * 100, 100)}%`
+                          : '0%'
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="shadow-lg animate-fade-up" style={{ animationDelay: "0.3s" }}>
-          <CardHeader>
-            <CardTitle>Payment Method</CardTitle>
-            <CardDescription>Manage your payment information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                  <CreditCard className="w-6 h-6 text-primary" />
+        {/* Payment Method (only show if subscribed) */}
+        {subscription?.stripe_subscription_id && (
+          <Card className="shadow-lg animate-fade-up" style={{ animationDelay: "0.3s" }}>
+            <CardHeader>
+              <CardTitle>Payment Method</CardTitle>
+              <CardDescription>Managed securely through Stripe</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 rounded-lg border">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Payment details stored securely</p>
+                    <p className="text-sm text-muted-foreground">
+                      Click "Manage Billing" to view and update
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold">•••• •••• •••• 4242</p>
-                  <p className="text-sm text-muted-foreground">Expires 12/2025</p>
-                </div>
+                <Button variant="outline" onClick={handleManageBilling}>
+                  Manage
+                </Button>
               </div>
-              <Button variant="outline">Update</Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="mt-8 shadow-lg animate-fade-up" style={{ animationDelay: "0.4s" }}>
-          <CardHeader>
-            <CardTitle>Billing History</CardTitle>
-            <CardDescription>Download your past invoices</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {invoices.map((invoice, index) => (
-                <div 
-                  key={invoice.id}
-                  className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-secondary/50 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                      <CreditCard className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">{invoice.id}</p>
-                      <p className="text-sm text-muted-foreground">{invoice.date}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-semibold">{invoice.amount}</span>
-                    <Badge variant="outline" className="border-green-500 text-green-600">
-                      {invoice.status}
-                    </Badge>
-                    <Button variant="ghost" size="sm">
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );
