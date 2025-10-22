@@ -286,16 +286,16 @@ const Dashboard = () => {
 
                   <Card className="border-2 border-green-200 hover:border-green-400 transition-colors">
                     <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <MessageCircle className="w-12 h-12 text-green-600" />
+                      <div className="text-center mb-4">
+                        <MessageCircle className="w-12 h-12 mx-auto mb-2 text-green-600" />
                         {whatsappStatus.verified ? (
                           <Badge variant="default" className="bg-green-600">Connected</Badge>
                         ) : whatsappStatus.connected ? (
                           <Badge variant="secondary" className="bg-yellow-600">Pending verification</Badge>
                         ) : null}
                       </div>
-                      <h3 className="font-semibold mb-2">Scheduly AI agent</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
+                      <h3 className="font-semibold mb-2 text-center">Scheduly AI agent</h3>
+                      <p className="text-sm text-muted-foreground mb-4 text-center">
                         Schedule meetings via WhatsApp messages
                       </p>
                       {!whatsappStatus.verified && (
