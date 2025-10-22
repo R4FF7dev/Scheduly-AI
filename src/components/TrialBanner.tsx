@@ -129,7 +129,7 @@ export const TrialBanner = () => {
   // Expired trial banner (persistent, non-dismissible)
   if (isExpired) {
     return (
-      <div className={`${isMobile ? 'fixed top-0 left-0 right-0 z-[60]' : 'sticky top-0 z-50'} w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 border-0`}>
+      <div className="sticky top-0 z-40 w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 border-0">
         <div className={`w-full px-4 flex items-center justify-between min-h-[52px] ${isMobile ? 'py-2' : 'py-3'}`}>
           <div className="flex items-center gap-2 text-white">
             <AlertCircle className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
@@ -151,7 +151,7 @@ export const TrialBanner = () => {
 
   // Active trial banner (dismissible)
   return (
-    <div className={`${isMobile ? 'fixed top-0 left-0 right-0 z-[60]' : 'sticky top-0 z-50'} w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 border-0`}>
+    <div className="sticky top-0 z-40 w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 border-0">
       <div className={`w-full px-4 flex items-center justify-between min-h-[52px] ${isMobile ? 'py-2' : 'py-3'}`}>
         <div className="flex items-center gap-2 text-white">
           <span className={isMobile ? 'text-base' : 'text-lg'}>🎉</span>
