@@ -44,7 +44,7 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
 
   return (
       <div className="flex flex-col h-full w-64 bg-sidebar border-r border-sidebar-border">
-        <div className="flex items-center gap-2 px-6 py-5 border-b border-sidebar-border">
+        <div className="flex items-center gap-2 px-6 py-5 border-b border-sidebar-border shrink-0">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sidebar-primary to-accent flex items-center justify-center shadow-lg">
             <MessageSquare className="w-6 h-6 text-white" />
           </div>
@@ -53,7 +53,7 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
           </span>
         </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
           return (
@@ -75,7 +75,7 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
         })}
       </nav>
 
-      <div className="px-3 py-4 border-t border-sidebar-border">
+      <div className="px-3 py-4 border-t border-sidebar-border shrink-0">
         <Button
           variant="ghost"
           className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
