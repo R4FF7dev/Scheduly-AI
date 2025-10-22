@@ -92,7 +92,7 @@ export const Navbar = () => {
             </Link>
             <Link to="/auth?tab=signup">
               <Button size="sm" variant="hero">
-                Get Started
+                Try it free
               </Button>
             </Link>
           </div>
