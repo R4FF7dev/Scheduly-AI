@@ -376,7 +376,7 @@ const Billing = () => {
                       ) : isCurrentPlan ? (
                         'Current Plan'
                       ) : (
-                        subscription?.stripe_subscription_id ? 'Switch to This Plan' : 'Start Free Trial'
+                        subscription?.stripe_subscription_id ? 'Switch to This Plan' : 'Subscribe'
                       )}
                     </Button>
                   </CardFooter>
