@@ -47,21 +47,22 @@ export const TrialBanner = () => {
         // Get user from Supabase auth
         const { data: { user: authUser } } = await supabase.auth.getUser();
         
-        if (!authUser?.created_at) {
-          console.log('❌ No user created_at found');
-          setLoading(false);
-          return;
+        let calculatedDaysRemaining = 14;
+        let daysSinceSignup = 0;
+        
+        if (authUser?.created_at) {
+          // Calculate trial days remaining based on signup date
+          const signupDate = new Date(authUser.created_at);
+          const now = new Date();
+          daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24));
+          calculatedDaysRemaining = Math.max(0, 14 - daysSinceSignup);
+        } else {
+          console.log('⚠️ No user created_at found - defaulting to 14 days trial');
         }
-
-        // Calculate trial days remaining
-        const signupDate = new Date(authUser.created_at);
-        const now = new Date();
-        const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24));
-        const calculatedDaysRemaining = Math.max(0, 14 - daysSinceSignup);
         
         // Debug output
         console.log('🔍 Trial Calculation Debug:');
-        console.log('  Signup date:', authUser.created_at);
+        console.log('  Signup date:', authUser?.created_at || 'N/A');
         console.log('  Days since signup:', daysSinceSignup);
         console.log('  Days remaining:', calculatedDaysRemaining);
         console.log('  Trial banner should be visible:', calculatedDaysRemaining > 0);
