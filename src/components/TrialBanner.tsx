@@ -62,6 +62,8 @@ export const TrialBanner = () => {
         console.log('  Signup date:', authUser.created_at);
         console.log('  Days since signup:', daysSinceSignup);
         console.log('  Days remaining:', calculatedDaysRemaining);
+        console.log('  Trial banner should be visible:', calculatedDaysRemaining > 0);
+        console.log('  Banner dismissed from localStorage:', localStorage.getItem('trialBannerDismissed'));
         
         setDaysRemaining(calculatedDaysRemaining);
 
@@ -126,7 +128,7 @@ export const TrialBanner = () => {
   if (isExpired) {
     return (
       <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 border-0">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="w-full px-4 py-3 flex items-center justify-between min-h-[52px]">
           <div className="flex items-center gap-2 text-white">
             <AlertCircle className="h-5 w-5" />
             <span className="text-sm font-medium">
@@ -148,7 +150,7 @@ export const TrialBanner = () => {
   // Active trial banner (dismissible)
   return (
     <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 border-0">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="w-full px-4 py-3 flex items-center justify-between min-h-[52px]">
         <div className="flex items-center gap-2 text-white">
           <span className="text-lg">🎉</span>
           <span className="text-sm font-medium">
