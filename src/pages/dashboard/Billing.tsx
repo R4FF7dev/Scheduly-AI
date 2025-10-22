@@ -117,9 +117,16 @@ const Billing = () => {
     } catch (err: any) {
       console.error('Subscription fetch error:', err);
       
-      // For ANY error (including network errors when backend doesn't exist),
-      // treat as free trial user. This is the expected state for new users.
-      // The subscription API is optional - if it's not available, users are on trial.
+      // Check if this is a server error (500+)
+      const isServerError = err?.response?.status >= 500;
+      
+      if (isServerError) {
+        // Only show error alert for actual server failures
+        setError('Failed to load subscription data. Please try again.');
+      }
+      
+      // For 404, network errors, or any other error: treat as free trial
+      // This is the expected state for new users without subscriptions
       setSubscription(null);
     } finally {
       setLoading(false);
