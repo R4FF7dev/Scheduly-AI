@@ -424,6 +424,42 @@ const Billing = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Billing History */}
+        <Card className="mt-8 shadow-lg animate-fade-up" style={{ animationDelay: "0.6s" }}>
+          <CardHeader>
+            <CardTitle>Billing History</CardTitle>
+            <CardDescription>Download your past invoices</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {subscription?.stripe_subscription_id ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">
+                  View your billing history and download invoices
+                </p>
+                <Button 
+                  onClick={handleManageBilling}
+                  disabled={managingBilling}
+                >
+                  {managingBilling ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    'View Billing History'
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  No billing history available. Subscribe to a plan to see your invoices here.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
