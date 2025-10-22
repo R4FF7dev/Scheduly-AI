@@ -43,7 +43,7 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
   };
 
   return (
-      <div className="flex flex-col h-full w-64 bg-sidebar border-r border-sidebar-border">
+      <div className="flex flex-col h-screen sticky top-0 w-64 bg-sidebar border-r border-sidebar-border overflow-hidden">
         <div className="flex items-center gap-2 px-6 py-5 border-b border-sidebar-border shrink-0">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sidebar-primary to-accent flex items-center justify-center shadow-lg">
             <MessageSquare className="w-6 h-6 text-white" />
