@@ -35,11 +35,7 @@ const AppContent = () => {
 
   return (
     <>
-      {isDashboard && (
-        <div className="sticky top-0 z-50">
-          <TrialBanner />
-        </div>
-      )}
+      {isDashboard && <TrialBanner />}
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />

@@ -7,7 +7,16 @@ import { supabase } from "@/integrations/supabase/client";
 export const TrialBanner = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [dismissed, setDismissed] = useState(false);
+  
+  // Load dismissal state from localStorage
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      return localStorage.getItem('trialBannerDismissed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  
   const [daysRemaining, setDaysRemaining] = useState(14);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -98,15 +107,25 @@ export const TrialBanner = () => {
 
   const isExpired = daysRemaining === 0;
 
-  // Don't allow dismissal if trial expired
+  // If banner was dismissed and trial is still active, don't show it
   if (dismissed && !isExpired) {
     return null;
   }
+  
+  // Handler to dismiss banner and persist to localStorage
+  const handleDismiss = () => {
+    setDismissed(true);
+    try {
+      localStorage.setItem('trialBannerDismissed', 'true');
+    } catch (error) {
+      console.error('Failed to save banner dismissal state:', error);
+    }
+  };
 
   // Expired trial banner (persistent, non-dismissible)
   if (isExpired) {
     return (
-      <div className="relative w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 border-0">
+      <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 border-0">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 text-white">
             <AlertCircle className="h-5 w-5" />
@@ -128,7 +147,7 @@ export const TrialBanner = () => {
 
   // Active trial banner (dismissible)
   return (
-    <div className="relative w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 border-0">
+    <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 border-0">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-white">
           <span className="text-lg">🎉</span>
@@ -145,7 +164,7 @@ export const TrialBanner = () => {
             Upgrade Now
           </button>
           <button
-            onClick={() => setDismissed(true)}
+            onClick={handleDismiss}
             className="text-white hover:bg-white/20 rounded p-1 transition-all"
             aria-label="Dismiss banner"
           >
