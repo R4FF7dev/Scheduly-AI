@@ -3,10 +3,12 @@ import { X, AlertCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const TrialBanner = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
   
   // Load dismissal state from localStorage
   const [dismissed, setDismissed] = useState(() => {
@@ -127,18 +129,18 @@ export const TrialBanner = () => {
   // Expired trial banner (persistent, non-dismissible)
   if (isExpired) {
     return (
-      <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 border-0">
-        <div className="w-full px-4 py-3 flex items-center justify-between min-h-[52px]">
+      <div className={`${isMobile ? 'fixed top-14 left-0 right-0 z-40' : 'sticky top-0 z-50'} w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 border-0`}>
+        <div className={`w-full px-4 flex items-center justify-between min-h-[52px] ${isMobile ? 'py-2' : 'py-3'}`}>
           <div className="flex items-center gap-2 text-white">
-            <AlertCircle className="h-5 w-5" />
-            <span className="text-sm font-medium">
+            <AlertCircle className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+            <span className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
               <span className="hidden sm:inline">Trial expired - Upgrade to continue using Scheduly AI</span>
               <span className="sm:hidden">Trial expired - Upgrade now</span>
             </span>
           </div>
           <button
             onClick={() => navigate('/dashboard/billing')}
-            className="bg-white text-red-600 px-4 py-1.5 rounded text-sm font-semibold hover:bg-red-50 transition-all whitespace-nowrap"
+            className={`bg-white text-red-600 rounded font-semibold hover:bg-red-50 transition-all whitespace-nowrap ${isMobile ? 'px-3 py-1 text-xs' : 'px-4 py-1.5 text-sm'}`}
           >
             Upgrade Now
           </button>
@@ -149,19 +151,19 @@ export const TrialBanner = () => {
 
   // Active trial banner (dismissible)
   return (
-    <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 border-0">
-      <div className="w-full px-4 py-3 flex items-center justify-between min-h-[52px]">
+    <div className={`${isMobile ? 'fixed top-14 left-0 right-0 z-40' : 'sticky top-0 z-50'} w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 border-0`}>
+      <div className={`w-full px-4 flex items-center justify-between min-h-[52px] ${isMobile ? 'py-2' : 'py-3'}`}>
         <div className="flex items-center gap-2 text-white">
-          <span className="text-lg">🎉</span>
-          <span className="text-sm font-medium">
+          <span className={isMobile ? 'text-base' : 'text-lg'}>🎉</span>
+          <span className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
             <span className="hidden sm:inline">Free Trial: {daysRemaining} days remaining to explore all features</span>
             <span className="sm:hidden">Trial: {daysRemaining} days left</span>
           </span>
         </div>
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-2 sm:gap-4'}`}>
           <button
             onClick={() => navigate('/dashboard/billing')}
-            className="text-white text-sm font-semibold underline hover:no-underline transition-all whitespace-nowrap"
+            className={`text-white font-semibold underline hover:no-underline transition-all whitespace-nowrap ${isMobile ? 'text-xs' : 'text-sm'}`}
           >
             Upgrade Now
           </button>
@@ -170,7 +172,7 @@ export const TrialBanner = () => {
             className="text-white hover:bg-white/20 rounded p-1 transition-all"
             aria-label="Dismiss banner"
           >
-            <X className="h-4 w-4" />
+            <X className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'}`} />
           </button>
         </div>
       </div>
