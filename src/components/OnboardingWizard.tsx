@@ -87,28 +87,34 @@ export const OnboardingWizard = () => {
   const handleConnectCalendar = async () => {
     setLoading(true);
     try {
+      console.log('🔗 Initiating calendar connection for user:', user.id);
+      
       const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.id })
       });
       
+      console.log('📡 Response status:', response.status);
       const data = await response.json();
+      console.log('📦 Response data:', data);
       
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to connect calendar');
       }
       
       if (data.authUrl) {
-        // Redirect to Google OAuth
+        console.log('🔀 Redirecting to Google OAuth:', data.authUrl);
+        // Redirect to Google OAuth - user will come back via CalendarCallback
         window.location.href = data.authUrl;
       } else {
+        console.log('✅ Calendar already connected');
         // Already connected
         await updateIntegrationStatus('calendar_connected', true);
         setStep(2);
       }
     } catch (error: any) {
-      console.error('Calendar connection error:', error);
+      console.error('❌ Calendar connection error:', error);
       toast({
         title: "Calendar Connection Failed",
         description: error.message || "Unable to connect calendar. Please try again.",

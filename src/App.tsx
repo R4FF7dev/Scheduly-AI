@@ -15,6 +15,7 @@ import Settings from "./pages/dashboard/Settings";
 import Billing from "./pages/dashboard/Billing";
 import Support from "./pages/dashboard/Support";
 import Onboarding from "./pages/dashboard/Onboarding";
+import CalendarCallback from "./pages/dashboard/CalendarCallback";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Security from "./pages/Security";
@@ -46,6 +47,7 @@ const AppContent = () => {
         <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
         <Route path="/dashboard/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
         <Route path="/dashboard/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+        <Route path="/dashboard/calendar-callback" element={<ProtectedRoute><CalendarCallback /></ProtectedRoute>} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/security" element={<Security />} />
