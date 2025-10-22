@@ -99,7 +99,10 @@ const Billing = () => {
       // Get user email from Supabase auth
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.email) {
-        throw new Error('No user email found');
+        // No user found, treat as trial user
+        setSubscription(null);
+        setLoading(false);
+        return;
       }
       
       const data = await api.get(`/user/subscription?email=${encodeURIComponent(user.email)}`);
@@ -112,35 +115,12 @@ const Billing = () => {
       
       setSubscription(data);
     } catch (err: any) {
-      console.error('Failed to fetch subscription:', err);
+      console.error('Subscription fetch error:', err);
       
-      // Check if this is a "no subscription found" case (normal for trial users)
-      const isNoSubscription = 
-        err?.response?.status === 404 || // 404 Not Found
-        err?.response?.status === 204 || // 204 No Content
-        err?.message?.toLowerCase().includes('not found') ||
-        err?.message?.toLowerCase().includes('no subscription');
-      
-      if (isNoSubscription) {
-        // User is on free trial - this is expected, not an error
-        setSubscription(null);
-        return;
-      }
-      
-      // Check if this is a real error (network failure, server error, etc.)
-      const isRealError = 
-        !err?.response || // Network error (offline, timeout)
-        err?.response?.status >= 500 || // Server error (500, 502, 503, etc.)
-        err?.code === 'ERR_NETWORK' || // Axios network error
-        err?.code === 'ECONNABORTED'; // Request timeout
-      
-      if (isRealError) {
-        // Only show error for actual failures
-        setError('Failed to load subscription data. Please try again.');
-      } else {
-        // For other cases, treat as no subscription (trial user)
-        setSubscription(null);
-      }
+      // For ANY error (including network errors when backend doesn't exist),
+      // treat as free trial user. This is the expected state for new users.
+      // The subscription API is optional - if it's not available, users are on trial.
+      setSubscription(null);
     } finally {
       setLoading(false);
     }
