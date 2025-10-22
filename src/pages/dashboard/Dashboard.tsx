@@ -2,17 +2,26 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useIntegrationStatus } from "@/hooks/useIntegrationStatus";
 import { ConnectedDashboard } from "@/components/dashboard/ConnectedDashboard";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { isFullyConnected, isLoading } = useIntegrationStatus();
+  const { isFullyConnected, isLoading, isCalendarConnected, whatsappStatus, refetch: refetchIntegrationStatus } = useIntegrationStatus();
   const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
 
@@ -22,6 +31,16 @@ const Dashboard = () => {
       fetchCalendarEvents();
     }
   }, [isFullyConnected, user?.id]);
+
+  // Listen for onboarding completion to refetch status
+  useEffect(() => {
+    const handleOnboardingComplete = () => {
+      refetchIntegrationStatus();
+    };
+
+    window.addEventListener('onboarding-completed', handleOnboardingComplete);
+    return () => window.removeEventListener('onboarding-completed', handleOnboardingComplete);
+  }, [refetchIntegrationStatus]);
 
   const fetchCalendarEvents = async () => {
     if (!user?.id) return;
@@ -92,6 +111,83 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Integrations Status Table */}
+        {!isFullyConnected && (
+          <Card className="mb-6 md:mb-8 animate-fade-up">
+            <CardHeader>
+              <CardTitle>Connect Your Integrations</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Integration</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Scheduly AI agent</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-blue-600" />
+                        Google Calendar
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {isCalendarConnected ? (
+                        <Badge variant="default" className="bg-green-600">Connected</Badge>
+                      ) : (
+                        <Badge variant="outline">Not connected</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {whatsappStatus.verified ? (
+                        <Badge variant="default" className="bg-green-600">Connected</Badge>
+                      ) : whatsappStatus.connected ? (
+                        <Badge variant="secondary" className="bg-yellow-600">Pending verification</Badge>
+                      ) : (
+                        <Badge variant="outline">Not connected</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {!isCalendarConnected && (
+                        <Button 
+                          onClick={() => navigate('/dashboard/onboarding')} 
+                          size="sm"
+                          variant="outline"
+                        >
+                          Connect Calendar
+                        </Button>
+                      )}
+                      {isCalendarConnected && !whatsappStatus.verified && (
+                        <Button 
+                          onClick={() => {
+                            navigate('/dashboard/onboarding?step=whatsapp');
+                            // Set up listener for navigation back to refetch status
+                            const handleVisibilityChange = () => {
+                              if (!document.hidden) {
+                                refetchIntegrationStatus();
+                                document.removeEventListener('visibilitychange', handleVisibilityChange);
+                              }
+                            };
+                            document.addEventListener('visibilitychange', handleVisibilityChange);
+                          }} 
+                          size="sm"
+                          variant="outline"
+                        >
+                          Connect WhatsApp
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Conditional Dashboard Content */}
         {isFullyConnected ? (

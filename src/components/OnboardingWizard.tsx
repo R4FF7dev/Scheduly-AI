@@ -225,6 +225,9 @@ export const OnboardingWizard = () => {
         description: "Welcome to Scheduly AI"
       });
 
+      // Dispatch event to signal onboarding completion
+      window.dispatchEvent(new CustomEvent('onboarding-completed'));
+      
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Setup completion error:', error);
