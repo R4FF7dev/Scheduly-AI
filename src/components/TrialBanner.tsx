@@ -2,13 +2,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { X, AlertCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { checkTrialStatus, TrialStatus } from "@/utils/trial";
+import { supabase } from "@/integrations/supabase/client";
 
 export const TrialBanner = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [dismissed, setDismissed] = useState(false);
-  const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
+  const [daysRemaining, setDaysRemaining] = useState(14);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
   
   // Safely get auth - handle case where provider isn't ready
@@ -31,9 +32,50 @@ export const TrialBanner = () => {
         return;
       }
       
-      const status = await checkTrialStatus();
-      setTrialStatus(status);
-      setLoading(false);
+      try {
+        // Get user from Supabase auth
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        
+        if (!authUser?.created_at) {
+          console.log('❌ No user created_at found');
+          setLoading(false);
+          return;
+        }
+
+        // Calculate trial days remaining
+        const signupDate = new Date(authUser.created_at);
+        const now = new Date();
+        const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24));
+        const calculatedDaysRemaining = Math.max(0, 14 - daysSinceSignup);
+        
+        // Debug output
+        console.log('🔍 Trial Calculation Debug:');
+        console.log('  Signup date:', authUser.created_at);
+        console.log('  Days since signup:', daysSinceSignup);
+        console.log('  Days remaining:', calculatedDaysRemaining);
+        
+        setDaysRemaining(calculatedDaysRemaining);
+
+        // Check subscription status
+        try {
+          const response = await fetch(
+            `https://n8n.schedulyai.com/webhook/user/subscription?email=${encodeURIComponent(authUser.email || '')}`
+          );
+          
+          if (response.ok) {
+            const subscription = await response.json();
+            const isActive = subscription?.status === 'active' || subscription?.status === 'trialing';
+            setHasActiveSubscription(isActive);
+            console.log('  Subscription status:', subscription?.status, '| Active:', isActive);
+          }
+        } catch (error) {
+          console.log('  Subscription check failed (treating as free trial)');
+        }
+      } catch (error) {
+        console.error('Error fetching trial status:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     
     fetchTrialStatus();
@@ -50,12 +92,11 @@ export const TrialBanner = () => {
   }
 
   // If user has active subscription, don't show trial banner
-  if (trialStatus?.hasActiveSubscription) {
+  if (hasActiveSubscription) {
     return null;
   }
 
-  const daysRemaining = trialStatus?.daysRemaining ?? 14;
-  const isExpired = !trialStatus?.isTrialActive;
+  const isExpired = daysRemaining === 0;
 
   // Don't allow dismissal if trial expired
   if (dismissed && !isExpired) {
