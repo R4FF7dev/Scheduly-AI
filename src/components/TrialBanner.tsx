@@ -124,53 +124,51 @@ export const TrialBanner = () => {
     }
   };
 
-  // Expired trial banner (persistent, non-dismissible)
+  // Expired trial banner (persistent, non-dismissible) - MOBILE ONLY
   if (isExpired) {
     return (
-      <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 border-0">
-        <div className="w-full px-4 py-3 flex items-center justify-between min-h-[52px]">
-          <div className="flex items-center gap-2 text-white">
-            <AlertCircle className="h-5 w-5" />
-            <span className="text-sm font-medium">
-              <span className="hidden sm:inline">Trial expired - Upgrade to continue using Scheduly AI</span>
-              <span className="sm:hidden">Trial expired - Upgrade now</span>
+      <div className="fixed top-14 left-0 right-0 z-40 w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 border-0 md:hidden">
+        <div className="w-full px-4 py-2.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-white min-w-0">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span className="text-xs font-medium truncate">
+              Trial expired - Upgrade now
             </span>
           </div>
           <button
             onClick={() => navigate('/dashboard/billing')}
-            className="bg-white text-red-600 px-4 py-1.5 rounded text-sm font-semibold hover:bg-red-50 transition-all whitespace-nowrap"
+            className="bg-white text-red-600 px-3 py-1 rounded text-xs font-semibold hover:bg-red-50 transition-all whitespace-nowrap flex-shrink-0"
           >
-            Upgrade Now
+            Upgrade
           </button>
         </div>
       </div>
     );
   }
 
-  // Active trial banner (dismissible)
+  // Active trial banner (dismissible) - MOBILE ONLY
   return (
-    <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 border-0">
-      <div className="w-full px-4 py-3 flex items-center justify-between min-h-[52px]">
-        <div className="flex items-center gap-2 text-white">
-          <span className="text-lg">🎉</span>
-          <span className="text-sm font-medium">
-            <span className="hidden sm:inline">Free Trial: {daysRemaining} days remaining to explore all features</span>
-            <span className="sm:hidden">Trial: {daysRemaining} days left</span>
+    <div className="fixed top-14 left-0 right-0 z-40 w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 border-0 md:hidden">
+      <div className="w-full px-4 py-2.5 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-white min-w-0">
+          <span className="text-base flex-shrink-0">🎉</span>
+          <span className="text-xs font-medium truncate">
+            Trial: {daysRemaining} days left
           </span>
         </div>
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => navigate('/dashboard/billing')}
-            className="text-white text-sm font-semibold underline hover:no-underline transition-all whitespace-nowrap"
+            className="text-white text-xs font-semibold underline hover:no-underline transition-all whitespace-nowrap"
           >
-            Upgrade Now
+            Upgrade
           </button>
           <button
             onClick={handleDismiss}
             className="text-white hover:bg-white/20 rounded p-1 transition-all"
             aria-label="Dismiss banner"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>

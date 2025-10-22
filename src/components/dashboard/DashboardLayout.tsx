@@ -29,7 +29,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     <div className="flex h-screen overflow-hidden flex-col">
       {/* Mobile Header - Fixed at top with proper z-index below banner */}
       {isMobile && (
-        <div className="fixed top-0 left-0 right-0 z-40 bg-background border-b h-14 flex items-center justify-between px-4">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b h-14 flex items-center justify-between px-4">
           <Button
             variant="ghost"
             size="icon"
@@ -67,7 +67,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </Sheet>
         )}
         
-        <main className="flex-1 overflow-y-auto bg-background">
+        <main className="flex-1 overflow-y-auto bg-background pt-10 md:pt-0">
           {children}
         </main>
       </div>
