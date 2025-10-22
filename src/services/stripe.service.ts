@@ -29,8 +29,9 @@ export const stripeService = {
     }
   },
   
-  createPortalSession: async () => {
+  createPortalSession: async (email: string) => {
     const response = await api.post(API_ENDPOINTS.stripe.createPortal, {
+      email,
       returnUrl: `${window.location.origin}/dashboard/billing`,
     });
     

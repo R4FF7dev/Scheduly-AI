@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { api } from "@/services/api.service";
 import { stripeService } from "@/services/stripe.service";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface Subscription {
   plan_name: string;
@@ -20,9 +22,12 @@ interface Subscription {
 }
 
 const Billing = () => {
+  const navigate = useNavigate();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [managingBilling, setManagingBilling] = useState(false);
+  const [navigatingToPricing, setNavigatingToPricing] = useState(false);
 
   // Calculate trial days from subscription creation date
   const getTrialDaysRemaining = () => {
@@ -44,7 +49,14 @@ const Billing = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.get('/user/subscription');
+      
+      // Get user email from Supabase auth
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        throw new Error('No user email found');
+      }
+      
+      const data = await api.get(`/user/subscription?email=${encodeURIComponent(user.email)}`);
       setSubscription(data);
     } catch (err: any) {
       console.error('Failed to fetch subscription:', err);
@@ -59,11 +71,26 @@ const Billing = () => {
 
   const handleManageBilling = async () => {
     try {
-      await stripeService.createPortalSession();
+      setManagingBilling(true);
+      
+      // Get user email from Supabase auth
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        throw new Error('No user email found');
+      }
+      
+      await stripeService.createPortalSession(user.email);
     } catch (err) {
       console.error('Failed to open portal:', err);
       alert('Failed to open billing portal. Please try again.');
+    } finally {
+      setManagingBilling(false);
     }
+  };
+
+  const handleNavigateToPricing = () => {
+    setNavigatingToPricing(true);
+    navigate('/?scrollTo=pricing');
   };
 
   const getPlanPrice = (planName: string) => {
@@ -115,9 +142,17 @@ const Billing = () => {
               <Button 
                 className="ml-4" 
                 size="sm"
-                onClick={() => window.location.href = '/#pricing'}
+                onClick={handleNavigateToPricing}
+                disabled={navigatingToPricing}
               >
-                Choose Plan
+                {navigatingToPricing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  'Choose Plan'
+                )}
               </Button>
             </AlertDescription>
           </Alert>
@@ -174,22 +209,49 @@ const Billing = () => {
               <div className="flex gap-3">
                 {subscription?.stripe_subscription_id ? (
                   <>
-                    <Button onClick={handleManageBilling} className="flex-1">
-                      Manage Billing
+                    <Button 
+                      onClick={handleManageBilling} 
+                      className="flex-1"
+                      disabled={managingBilling}
+                    >
+                      {managingBilling ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        'Manage Billing'
+                      )}
                     </Button>
                     <Button 
                       variant="outline" 
-                      onClick={() => window.location.href = '/#pricing'}
+                      onClick={handleNavigateToPricing}
+                      disabled={navigatingToPricing}
                     >
-                      Change Plan
+                      {navigatingToPricing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        'Change Plan'
+                      )}
                     </Button>
                   </>
                 ) : (
                   <Button 
-                    onClick={() => window.location.href = '/#pricing'}
+                    onClick={handleNavigateToPricing}
                     className="flex-1"
+                    disabled={navigatingToPricing}
                   >
-                    Choose a Plan
+                    {navigatingToPricing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      'Choose a Plan'
+                    )}
                   </Button>
                 )}
               </div>
@@ -226,14 +288,14 @@ const Billing = () => {
           </Card>
         </div>
 
-        {/* Payment Method */}
-        <Card className="shadow-lg animate-fade-up" style={{ animationDelay: "0.3s" }}>
-          <CardHeader>
-            <CardTitle>Payment Method</CardTitle>
-            <CardDescription>Manage your payment information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {subscription?.stripe_subscription_id ? (
+        {/* Payment Method - Only show if subscription exists */}
+        {subscription?.stripe_subscription_id && (
+          <Card className="shadow-lg animate-fade-up" style={{ animationDelay: "0.3s" }}>
+            <CardHeader>
+              <CardTitle>Payment Method</CardTitle>
+              <CardDescription>Manage your payment information</CardDescription>
+            </CardHeader>
+            <CardContent>
               <div className="flex items-center justify-between p-4 rounded-lg border border-border">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
@@ -246,27 +308,24 @@ const Billing = () => {
                     </p>
                   </div>
                 </div>
-                <Button variant="outline" onClick={handleManageBilling}>
-                  Update
+                <Button 
+                  variant="outline" 
+                  onClick={handleManageBilling}
+                  disabled={managingBilling}
+                >
+                  {managingBilling ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Update'
+                  )}
                 </Button>
               </div>
-            ) : (
-              <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                    <CreditCard className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">No payment method on file</p>
-                    <p className="text-sm text-muted-foreground">
-                      Subscribe to a plan to add payment details
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Billing History */}
         <Card className="mt-8 shadow-lg animate-fade-up" style={{ animationDelay: "0.4s" }}>
@@ -280,8 +339,18 @@ const Billing = () => {
                 <p className="text-muted-foreground mb-4">
                   View your billing history and download invoices
                 </p>
-                <Button onClick={handleManageBilling}>
-                  View Billing History
+                <Button 
+                  onClick={handleManageBilling}
+                  disabled={managingBilling}
+                >
+                  {managingBilling ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    'View Billing History'
+                  )}
                 </Button>
               </div>
             ) : (
