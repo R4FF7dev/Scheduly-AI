@@ -440,14 +440,14 @@ const Billing = () => {
           </Card>
         )}
 
-        {/* Billing History */}
-        <Card className="mt-8 shadow-lg animate-fade-up" style={{ animationDelay: "0.6s" }}>
-          <CardHeader>
-            <CardTitle>Billing History</CardTitle>
-            <CardDescription>Download your past invoices</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {subscription?.stripe_subscription_id ? (
+        {/* Billing History - Only show if user has subscription */}
+        {subscription?.stripe_subscription_id && (
+          <Card className="mt-8 shadow-lg animate-fade-up" style={{ animationDelay: "0.6s" }}>
+            <CardHeader>
+              <CardTitle>Billing History</CardTitle>
+              <CardDescription>Download your past invoices</CardDescription>
+            </CardHeader>
+            <CardContent>
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-4">
                   View your billing history and download invoices
@@ -466,15 +466,9 @@ const Billing = () => {
                   )}
                 </Button>
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  No billing history available. Subscribe to a plan to see your invoices here.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );
