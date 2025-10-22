@@ -103,15 +103,43 @@ const Billing = () => {
       }
       
       const data = await api.get(`/user/subscription?email=${encodeURIComponent(user.email)}`);
+      
+      // If data is null or empty, treat as free trial user (normal state)
+      if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
+        setSubscription(null);
+        return;
+      }
+      
       setSubscription(data);
     } catch (err: any) {
       console.error('Failed to fetch subscription:', err);
-      // Treat 404 as trial user (not an error)
-      if (err?.response?.status === 404) {
-        setSubscription(null); // Free trial user
-      } else {
-        // Only show error for actual failures (500, network errors)
+      
+      // Check if this is a "no subscription found" case (normal for trial users)
+      const isNoSubscription = 
+        err?.response?.status === 404 || // 404 Not Found
+        err?.response?.status === 204 || // 204 No Content
+        err?.message?.toLowerCase().includes('not found') ||
+        err?.message?.toLowerCase().includes('no subscription');
+      
+      if (isNoSubscription) {
+        // User is on free trial - this is expected, not an error
+        setSubscription(null);
+        return;
+      }
+      
+      // Check if this is a real error (network failure, server error, etc.)
+      const isRealError = 
+        !err?.response || // Network error (offline, timeout)
+        err?.response?.status >= 500 || // Server error (500, 502, 503, etc.)
+        err?.code === 'ERR_NETWORK' || // Axios network error
+        err?.code === 'ECONNABORTED'; // Request timeout
+      
+      if (isRealError) {
+        // Only show error for actual failures
         setError('Failed to load subscription data. Please try again.');
+      } else {
+        // For other cases, treat as no subscription (trial user)
+        setSubscription(null);
       }
     } finally {
       setLoading(false);
