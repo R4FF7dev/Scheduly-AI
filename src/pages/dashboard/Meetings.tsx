@@ -2,8 +2,12 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Filter, Plus } from "lucide-react";
+import { Calendar, Search, Filter, Plus, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { checkTrialStatus, TrialStatus } from "@/utils/trial";
 
 const meetings = [
   {
@@ -45,15 +49,59 @@ const meetings = [
 ];
 
 const Meetings = () => {
+  const navigate = useNavigate();
+  const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
+  const [checkingTrial, setCheckingTrial] = useState(true);
+
+  useEffect(() => {
+    const checkTrial = async () => {
+      const status = await checkTrialStatus();
+      setTrialStatus(status);
+      setCheckingTrial(false);
+    };
+    checkTrial();
+  }, []);
+
+  const handleNewMeeting = () => {
+    if (!trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription) {
+      navigate('/dashboard/billing');
+    } else {
+      // TODO: Open new meeting dialog
+      console.log('Create new meeting');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="p-8">
+        {!checkingTrial && !trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription && (
+          <Alert className="mb-6 border-red-500 bg-red-50 animate-fade-up">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              Your free trial has ended. Please upgrade to create new meetings.
+              <Button 
+                onClick={() => navigate('/dashboard/billing')} 
+                className="ml-4"
+                size="sm"
+              >
+                Upgrade Now
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex items-center justify-between mb-8 animate-fade-up">
           <div>
             <h1 className="text-3xl font-bold mb-2">Meetings</h1>
             <p className="text-muted-foreground">Manage all your meetings in one place</p>
           </div>
-          <Button size="lg" variant="hero" className="gap-2">
+          <Button 
+            size="lg" 
+            variant="hero" 
+            className="gap-2"
+            onClick={handleNewMeeting}
+            disabled={!checkingTrial && !trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription}
+          >
             <Plus className="w-5 h-5" />
             New Meeting
           </Button>
