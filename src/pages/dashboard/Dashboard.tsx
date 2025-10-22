@@ -9,14 +9,6 @@ import { useIntegrationStatus } from "@/hooks/useIntegrationStatus";
 import { ConnectedDashboard } from "@/components/dashboard/ConnectedDashboard";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -111,83 +103,6 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Integrations Status Table */}
-        {!isFullyConnected && (
-          <Card className="mb-6 md:mb-8 animate-fade-up">
-            <CardHeader>
-              <CardTitle>Connect Your Integrations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Integration</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Scheduly AI agent</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-blue-600" />
-                        Google Calendar
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {isCalendarConnected ? (
-                        <Badge variant="default" className="bg-green-600">Connected</Badge>
-                      ) : (
-                        <Badge variant="outline">Not connected</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {whatsappStatus.verified ? (
-                        <Badge variant="default" className="bg-green-600">Connected</Badge>
-                      ) : whatsappStatus.connected ? (
-                        <Badge variant="secondary" className="bg-yellow-600">Pending verification</Badge>
-                      ) : (
-                        <Badge variant="outline">Not connected</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {!isCalendarConnected && (
-                        <Button 
-                          onClick={() => navigate('/dashboard/onboarding')} 
-                          size="sm"
-                          variant="outline"
-                        >
-                          Connect Calendar
-                        </Button>
-                      )}
-                      {isCalendarConnected && !whatsappStatus.verified && (
-                        <Button 
-                          onClick={() => {
-                            navigate('/dashboard/onboarding?step=whatsapp');
-                            // Set up listener for navigation back to refetch status
-                            const handleVisibilityChange = () => {
-                              if (!document.hidden) {
-                                refetchIntegrationStatus();
-                                document.removeEventListener('visibilitychange', handleVisibilityChange);
-                              }
-                            };
-                            document.addEventListener('visibilitychange', handleVisibilityChange);
-                          }} 
-                          size="sm"
-                          variant="outline"
-                        >
-                          Connect WhatsApp
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Conditional Dashboard Content */}
         {isFullyConnected ? (
@@ -371,14 +286,37 @@ const Dashboard = () => {
 
                   <Card className="border-2 border-green-200 hover:border-green-400 transition-colors">
                     <CardContent className="p-6">
-                      <MessageCircle className="w-12 h-12 mx-auto mb-4 text-green-600" />
+                      <div className="flex items-center justify-between mb-4">
+                        <MessageCircle className="w-12 h-12 text-green-600" />
+                        {whatsappStatus.verified ? (
+                          <Badge variant="default" className="bg-green-600">Connected</Badge>
+                        ) : whatsappStatus.connected ? (
+                          <Badge variant="secondary" className="bg-yellow-600">Pending verification</Badge>
+                        ) : null}
+                      </div>
                       <h3 className="font-semibold mb-2">Scheduly AI agent</h3>
                       <p className="text-sm text-muted-foreground mb-4">
                         Schedule meetings via WhatsApp messages
                       </p>
-                      <Button onClick={() => navigate('/dashboard/onboarding?step=whatsapp')} className="w-full" variant="outline">
-                        Connect WhatsApp
-                      </Button>
+                      {!whatsappStatus.verified && (
+                        <Button 
+                          onClick={() => {
+                            navigate('/dashboard/onboarding?step=whatsapp');
+                            // Set up listener for navigation back to refetch status
+                            const handleVisibilityChange = () => {
+                              if (!document.hidden) {
+                                refetchIntegrationStatus();
+                                document.removeEventListener('visibilitychange', handleVisibilityChange);
+                              }
+                            };
+                            document.addEventListener('visibilitychange', handleVisibilityChange);
+                          }} 
+                          className="w-full" 
+                          variant="outline"
+                        >
+                          Connect WhatsApp
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
