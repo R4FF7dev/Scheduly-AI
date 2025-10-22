@@ -17,8 +17,8 @@ export const stripeService = {
     const response = await api.post(API_ENDPOINTS.stripe.createCheckout, {
       priceId,
       planName,
-      successUrl: `${window.location.origin}/dashboard/onboarding?session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${window.location.origin}/landing`,
+      successUrl: `${window.location.origin}/dashboard/billing?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${window.location.origin}/dashboard/billing`,
     });
     
     // Redirect to Stripe Checkout URL
