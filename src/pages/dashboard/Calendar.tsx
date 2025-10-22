@@ -12,8 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, startOfWeek, endOfWeek } from "date-fns";
-import { checkTrialStatus, TrialStatus } from "@/utils/trial";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CalendarEvent {
   id: string;
@@ -34,8 +32,6 @@ const Calendar = () => {
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
-  const [checkingTrial, setCheckingTrial] = useState(true);
   
   const [formData, setFormData] = useState({
     summary: '',
@@ -47,15 +43,6 @@ const Calendar = () => {
     endTime: '',
     attendees: ''
   });
-
-  useEffect(() => {
-    const checkTrial = async () => {
-      const status = await checkTrialStatus();
-      setTrialStatus(status);
-      setCheckingTrial(false);
-    };
-    checkTrial();
-  }, []);
 
   useEffect(() => {
     fetchEvents();
@@ -167,22 +154,6 @@ const Calendar = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-8">
-        {!checkingTrial && !trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription && (
-          <Alert className="mb-6 border-red-500 bg-red-50 animate-fade-up">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
-              Your free trial has ended. Please upgrade to connect your calendar and create events.
-              <Button 
-                onClick={() => navigate('/dashboard/billing')} 
-                className="ml-4"
-                size="sm"
-              >
-                Upgrade Now
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
-
         {!isCalendarConnected && (
           <Card className="mb-6 border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50">
             <CardContent className="p-6">
@@ -194,15 +165,8 @@ const Calendar = () => {
                     Connect your Google Calendar to view and manage your events from here.
                   </p>
                   <Button 
-                    onClick={() => {
-                      if (!trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription) {
-                        navigate('/dashboard/billing');
-                      } else {
-                        navigate('/dashboard/onboarding');
-                      }
-                    }}
+                    onClick={() => navigate('/dashboard/onboarding')}
                     className="bg-orange-600 hover:bg-orange-700"
-                    disabled={!checkingTrial && !trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription}
                   >
                     Connect Calendar
                   </Button>
@@ -222,15 +186,7 @@ const Calendar = () => {
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button 
-                className="w-full md:w-auto"
-                disabled={!checkingTrial && !trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription}
-                onClick={() => {
-                  if (!trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription) {
-                    navigate('/dashboard/billing');
-                  }
-                }}
-              >
+              <Button className="w-full md:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 New Event
               </Button>

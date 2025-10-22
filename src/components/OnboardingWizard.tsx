@@ -5,15 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MessageSquare, CheckCircle, ArrowLeft, Settings, Loader2, AlertCircle } from "lucide-react";
+import { Calendar, MessageSquare, CheckCircle, ArrowLeft, Settings, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { whatsappService } from "@/services/whatsapp.service";
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
-import { checkTrialStatus, TrialStatus } from "@/utils/trial";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const OnboardingWizard = () => {
   const navigate = useNavigate();
@@ -27,8 +25,6 @@ export const OnboardingWizard = () => {
   }
   
   const [userName, setUserName] = useState<string>("");
-  const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
-  const [checkingTrial, setCheckingTrial] = useState(true);
   
   // Determine initial step from query params
   const queryStep = searchParams.get('step');
@@ -89,17 +85,6 @@ export const OnboardingWizard = () => {
   }, [step, codeExpiry]);
 
   const handleConnectCalendar = async () => {
-    // Check trial status before allowing connection
-    if (!trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription) {
-      toast({
-        title: "Trial Expired",
-        description: "Please upgrade to connect your calendar.",
-        variant: "destructive"
-      });
-      navigate('/dashboard/billing');
-      return;
-    }
-
     setLoading(true);
     try {
       const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/connect', {
@@ -135,17 +120,6 @@ export const OnboardingWizard = () => {
   };
 
   const handleConnectWhatsApp = async () => {
-    // Check trial status before allowing connection
-    if (!trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription) {
-      toast({
-        title: "Trial Expired",
-        description: "Please upgrade to connect WhatsApp.",
-        variant: "destructive"
-      });
-      navigate('/dashboard/billing');
-      return;
-    }
-
     // Add basic E.164 validation
     if (!phoneNumber || !phoneNumber.startsWith('+')) {
       toast({

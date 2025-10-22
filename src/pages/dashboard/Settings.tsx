@@ -5,31 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2, Calendar, MessageSquare, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { checkTrialStatus, TrialStatus } from "@/utils/trial";
+import { CheckCircle2, Calendar, MessageSquare } from "lucide-react";
 
 const Settings = () => {
-  const navigate = useNavigate();
-  const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
-  const [checkingTrial, setCheckingTrial] = useState(true);
-
-  useEffect(() => {
-    const checkTrial = async () => {
-      const status = await checkTrialStatus();
-      setTrialStatus(status);
-      setCheckingTrial(false);
-    };
-    checkTrial();
-  }, []);
-
-  const handleIntegrationAction = () => {
-    if (!trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription) {
-      navigate('/dashboard/billing');
-    }
-  };
   return (
     <DashboardLayout>
       <div className="p-8">
@@ -77,22 +55,6 @@ const Settings = () => {
           </TabsContent>
 
           <TabsContent value="integrations" className="space-y-6">
-            {!checkingTrial && !trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription && (
-              <Alert className="border-red-500 bg-red-50 animate-fade-up">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-800">
-                  Your free trial has ended. Please upgrade to connect integrations.
-                  <Button 
-                    onClick={() => navigate('/dashboard/billing')} 
-                    className="ml-4"
-                    size="sm"
-                  >
-                    Upgrade Now
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            )}
-
             <Card className="animate-fade-up" style={{ animationDelay: "0.2s" }}>
               <CardHeader>
                 <CardTitle>Google Calendar</CardTitle>
@@ -110,11 +72,7 @@ const Settings = () => {
                       <p className="text-sm text-muted-foreground">sarah@example.com</p>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline"
-                    onClick={handleIntegrationAction}
-                    disabled={!trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription}
-                  >
+                  <Button variant="outline">
                     Disconnect
                   </Button>
                 </div>
@@ -138,11 +96,7 @@ const Settings = () => {
                       <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline"
-                    onClick={handleIntegrationAction}
-                    disabled={!trialStatus?.isTrialActive && !trialStatus?.hasActiveSubscription}
-                  >
+                  <Button variant="outline">
                     Disconnect
                   </Button>
                 </div>
