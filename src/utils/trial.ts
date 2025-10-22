@@ -26,11 +26,19 @@ export const checkTrialStatus = async (): Promise<TrialStatus> => {
     }
 
     // Calculate trial days from user creation date
-    const createdAt = new Date(user.created_at);
-    const now = new Date();
-    const daysSinceCreation = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-    const daysRemaining = Math.max(0, TRIAL_DAYS - daysSinceCreation);
-    const isTrialActive = daysRemaining > 0;
+    let daysRemaining = TRIAL_DAYS;
+    let isTrialActive = true;
+    
+    if (user.created_at) {
+      const createdAt = new Date(user.created_at);
+      const now = new Date();
+      const daysSinceCreation = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      daysRemaining = Math.max(0, TRIAL_DAYS - daysSinceCreation);
+      isTrialActive = daysRemaining > 0;
+    } else {
+      // If no created_at found, default to full trial period
+      console.log('⚠️ No user created_at found - defaulting to 14 days trial');
+    }
 
     // Check subscription status from external API
     let hasActiveSubscription = false;
