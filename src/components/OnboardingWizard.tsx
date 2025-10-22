@@ -279,7 +279,16 @@ export const OnboardingWizard = () => {
   const seconds = remainingTime % 60;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4 relative">
+      <Button
+        variant="ghost"
+        className="absolute top-6 left-6 gap-2 z-20"
+        onClick={() => navigate('/dashboard')}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Dashboard
+      </Button>
+      
       <div className="w-full max-w-2xl">
         <Card className="shadow-xl">
           <CardHeader>
