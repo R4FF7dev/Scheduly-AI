@@ -105,28 +105,34 @@ const Billing = () => {
         return;
       }
       
-      const data = await api.get(`/user/subscription?email=${encodeURIComponent(user.email)}`);
+      // Call n8n API directly with email parameter
+      const response = await fetch(
+        `https://n8n.schedulyai.com/webhook/user/subscription?email=${encodeURIComponent(user.email)}`
+      );
       
-      // If data is null or empty, treat as free trial user (normal state)
-      if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
+      if (response.ok) {
+        const data = await response.json();
+        // If data is null or empty, treat as free trial user (normal state)
+        if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
+          setSubscription(null);
+        } else {
+          setSubscription(data);
+        }
+      } else if (response.status === 404) {
+        // 404 = no subscription = free trial user (normal state)
         setSubscription(null);
-        return;
-      }
-      
-      setSubscription(data);
-    } catch (err: any) {
-      console.error('Subscription fetch error:', err);
-      
-      // Check if this is a server error (500+)
-      const isServerError = err?.response?.status >= 500;
-      
-      if (isServerError) {
+      } else if (response.status >= 500) {
         // Only show error alert for actual server failures
         setError('Failed to load subscription data. Please try again.');
+        setSubscription(null);
+      } else {
+        // Other errors (401, 403, etc.) - treat as trial
+        setSubscription(null);
       }
-      
-      // For 404, network errors, or any other error: treat as free trial
-      // This is the expected state for new users without subscriptions
+    } catch (err: any) {
+      console.error('Subscription fetch error:', err);
+      // Network errors or other failures - treat as free trial
+      // Don't show error alert for network issues
       setSubscription(null);
     } finally {
       setLoading(false);
