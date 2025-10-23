@@ -16,21 +16,11 @@ import 'react-phone-number-input/style.css';
 export const OnboardingWizard = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, session } = useAuth();
+  const { user } = useAuth();
   
-  // Guard: Redirect if not authenticated or no session
-  useEffect(() => {
-    if (!user || !session) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to continue",
-        variant: "destructive"
-      });
-      navigate('/auth');
-    }
-  }, [user, session, navigate]);
-  
-  if (!user || !session) {
+  // Guard: Redirect if not authenticated
+  if (!user) {
+    navigate('/auth');
     return null;
   }
   
@@ -213,17 +203,6 @@ export const OnboardingWizard = () => {
   const handleCompleteSetup = async () => {
     setLoading(true);
     try {
-      // Double-check session before attempting database write
-      if (!session) {
-        toast({
-          title: "Session Expired",
-          description: "Please sign in again",
-          variant: "destructive"
-        });
-        navigate('/auth');
-        return;
-      }
-
       // Save preferences
       const { error: prefsError } = await supabase
         .from('user_preferences')
@@ -234,19 +213,7 @@ export const OnboardingWizard = () => {
           timezone: timezone
         });
 
-      if (prefsError) {
-        console.error('Preferences error:', prefsError);
-        if (prefsError.message.includes('row-level security')) {
-          toast({
-            title: "Session Expired",
-            description: "Please sign in again",
-            variant: "destructive"
-          });
-          navigate('/auth');
-          return;
-        }
-        throw prefsError;
-      }
+      if (prefsError) throw prefsError;
 
       // Update integrations status
       const { error: integrationsError } = await supabase
@@ -257,19 +224,7 @@ export const OnboardingWizard = () => {
           onboarding_step: 4
         });
 
-      if (integrationsError) {
-        console.error('Integrations error:', integrationsError);
-        if (integrationsError.message.includes('row-level security')) {
-          toast({
-            title: "Session Expired",
-            description: "Please sign in again",
-            variant: "destructive"
-          });
-          navigate('/auth');
-          return;
-        }
-        throw integrationsError;
-      }
+      if (integrationsError) throw integrationsError;
 
       toast({
         title: "Setup Complete! 🎉",
