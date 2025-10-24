@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import heroVideo from "@/assets/hero-mockup.mp4";
+import heroVideo from "@/assets/hero-mockup.webm";
 import heroMockup from "@/assets/hero-mockup-animated.jpg";
 import profile1 from "@/assets/profile-1.jpg";
 import profile2 from "@/assets/profile-2.jpg";
@@ -88,6 +88,7 @@ export const Hero = () => {
                 loop
                 muted
                 playsInline
+                controls
                 className="w-full h-auto drop-shadow-2xl"
                 aria-label="Scheduly AI WhatsApp Interface"
               />
