@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import heroVideo from "@/assets/hero-mockup.webm";
+import heroVideo from "@/assets/hero-mockup.mp4";
 import heroMockup from "@/assets/hero-mockup-animated.jpg";
 import profile1 from "@/assets/profile-1.jpg";
 import profile2 from "@/assets/profile-2.jpg";
