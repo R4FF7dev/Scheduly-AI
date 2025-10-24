@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Volume2, VolumeX, Maximize } from "lucide-react";
 import heroVideo from "@/assets/hero-mockup.webm";
+import { useRef, useState } from "react";
 import heroMockup from "@/assets/hero-mockup-animated.jpg";
 import profile1 from "@/assets/profile-1.jpg";
 import profile2 from "@/assets/profile-2.jpg";
@@ -9,6 +10,26 @@ import profile4 from "@/assets/profile-4.jpg";
 import { Link } from "react-router-dom";
 
 export const Hero = () => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (videoRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        videoRef.current.requestFullscreen();
+      }
+    }
+  };
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-24 md:pt-0 pb-16 md:pb-0">
       {/* Animated gradient background */}
@@ -79,19 +100,42 @@ export const Hero = () => {
           </div>
 
           {/* Right content - Hero mockup */}
-          <div className="relative animate-scale-in" style={{ animationDelay: "0.2s" }}>
+          <div className="relative animate-scale-in group" style={{ animationDelay: "0.2s" }}>
             <div className="relative">
               <video 
+                ref={videoRef}
                 src={heroVideo}
                 poster={heroMockup}
                 autoPlay
                 loop
                 muted
                 playsInline
-                controls
-                className="w-full h-auto drop-shadow-2xl"
+                className="w-full h-auto drop-shadow-2xl rounded-lg"
                 aria-label="Scheduly AI WhatsApp Interface"
               />
+              
+              {/* Custom video controls */}
+              <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <button
+                  onClick={toggleMute}
+                  className="p-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200"
+                  aria-label={isMuted ? "Unmute video" : "Mute video"}
+                >
+                  {isMuted ? (
+                    <VolumeX className="w-5 h-5 text-white" />
+                  ) : (
+                    <Volume2 className="w-5 h-5 text-white" />
+                  )}
+                </button>
+                
+                <button
+                  onClick={toggleFullscreen}
+                  className="p-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200"
+                  aria-label="Enter fullscreen"
+                >
+                  <Maximize className="w-5 h-5 text-white" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
