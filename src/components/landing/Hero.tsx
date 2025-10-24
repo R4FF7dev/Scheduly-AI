@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import heroMockup from "@/assets/hero-mockup-animated.gif";
+import heroVideo from "@/assets/hero-mockup.webm";
+import heroMockup from "@/assets/hero-mockup-animated.jpg";
 import profile1 from "@/assets/profile-1.jpg";
 import profile2 from "@/assets/profile-2.jpg";
 import profile3 from "@/assets/profile-3.jpg";
@@ -80,10 +81,15 @@ export const Hero = () => {
           {/* Right content - Hero mockup */}
           <div className="relative animate-scale-in" style={{ animationDelay: "0.2s" }}>
             <div className="relative">
-              <img 
-                src={heroMockup} 
-                alt="Scheduly AI WhatsApp Interface" 
+              <video 
+                src={heroVideo}
+                poster={heroMockup}
+                autoPlay
+                loop
+                muted
+                playsInline
                 className="w-full h-auto drop-shadow-2xl"
+                aria-label="Scheduly AI WhatsApp Interface"
               />
             </div>
           </div>
