@@ -203,7 +203,7 @@ export const OnboardingWizard = () => {
   const handleCompleteSetup = async () => {
     setLoading(true);
     try {
-      // Save preferences
+      // Save preferences with explicit conflict resolution
       const { error: prefsError } = await supabase
         .from('user_preferences')
         .upsert({
@@ -211,30 +211,38 @@ export const OnboardingWizard = () => {
           default_meeting_duration: parseInt(meetingDuration),
           buffer_time: parseInt(bufferTime),
           timezone: timezone
+        }, {
+          onConflict: 'user_id'  // ← Specify conflict field
         });
 
-      if (prefsError) throw prefsError;
+      if (prefsError) {
+        console.error('Preferences error:', prefsError);
+        throw prefsError;
+      }
 
-      // Update integrations status
+      // Update integrations status with explicit conflict resolution
       const { error: integrationsError } = await supabase
         .from('user_integrations')
         .upsert({
           user_id: user.id,
           onboarding_completed: true,
           onboarding_step: 4
+        }, {
+          onConflict: 'user_id'  // ← Specify conflict field
         });
 
-      if (integrationsError) throw integrationsError;
+      if (integrationsError) {
+        console.error('Integrations error:', integrationsError);
+        throw integrationsError;
+      }
 
       toast({
         title: "Setup Complete! 🎉",
         description: "Welcome to Scheduly AI"
       });
 
-      // Dispatch event to signal onboarding completion
-      window.dispatchEvent(new CustomEvent('onboarding-completed'));
-      
-      navigate('/dashboard');
+      // Hard redirect to ensure fresh dashboard load
+      window.location.href = '/dashboard';
     } catch (error: any) {
       console.error('Setup completion error:', error);
       toast({
