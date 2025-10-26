@@ -24,7 +24,10 @@ export const authService = {
       },
     });
 
-    if (authError) throw authError;
+    if (authError) {
+      console.error('❌ Signup error:', authError);
+      throw authError;
+    }
     if (!authData.user) throw new Error('Registration failed');
 
     // Create user profile in public schema
@@ -36,7 +39,7 @@ export const authService = {
       });
 
     if (profileError) {
-      console.error('Profile creation error:', profileError);
+      console.error('❌ Profile creation error:', profileError);
       // Don't throw - user is created, profile can be created later
     }
 
@@ -57,7 +60,10 @@ export const authService = {
       password: credentials.password,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Login error:', error);
+      throw error;
+    }
     if (!data.user) throw new Error('Login failed');
 
     return {
