@@ -126,11 +126,23 @@ export const OnboardingWizard = () => {
   };
 
   const handleConnectWhatsApp = async () => {
-    // Add basic E.164 validation
-    if (!phoneNumber || !phoneNumber.startsWith('+')) {
+    // Clean and validate phone number (E.164 format)
+    const cleanPhone = phoneNumber?.replace(/[\s\-\(\)]/g, '');
+    
+    if (!cleanPhone || !cleanPhone.startsWith('+')) {
       toast({
         title: "Invalid phone number",
-        description: "Phone number must start with + and country code (e.g., +1234567890)",
+        description: "Please enter a valid phone number with country code",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate it's numbers only after the +
+    if (!/^\+\d{10,15}$/.test(cleanPhone)) {
+      toast({
+        title: "Invalid phone number",
+        description: "Phone number must be in format +1234567890 (10-15 digits)",
         variant: "destructive"
       });
       return;
@@ -138,22 +150,27 @@ export const OnboardingWizard = () => {
 
     setLoading(true);
     try {
-      const response = await whatsappService.connect(phoneNumber, user.id);
+      console.log('Sending WhatsApp connect request with:', cleanPhone);
+      const response = await whatsappService.connect(cleanPhone, user.id);
+      console.log('WhatsApp connect response:', response);
       
       if (response.success) {
         toast({
           title: "Code sent!",
-          description: `Check your WhatsApp at ${phoneNumber}`,
+          description: `Check your WhatsApp at ${cleanPhone}`,
         });
         
         // Set code expiry to 10 minutes from now
         setCodeExpiry(Date.now() + 10 * 60 * 1000);
         setStep(3);
+      } else {
+        throw new Error(response.message || 'Failed to send verification code');
       }
     } catch (error) {
+      console.error('WhatsApp connection error:', error);
       toast({
         title: "Connection failed",
-        description: (error as Error).message,
+        description: (error as Error).message || 'Unable to send verification code',
         variant: "destructive"
       });
     } finally {
