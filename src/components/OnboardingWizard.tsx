@@ -327,7 +327,7 @@ export const OnboardingWizard = () => {
                     Welcome{userName && `, ${userName}`}! 👋
                   </h2>
                   <CardDescription className="text-base">
-                    Let's connect your Google Calendar to start managing your meetings
+                    Connect your Google Calendar to manage availability (optional)
                   </CardDescription>
                 </div>
                 <div className="bg-muted p-4 rounded-lg text-sm text-left">
@@ -336,24 +336,39 @@ export const OnboardingWizard = () => {
                     We'll sync your calendar to automatically schedule meetings and avoid conflicts
                   </p>
                 </div>
-                <Button 
-                  onClick={handleConnectCalendar} 
-                  size="lg" 
-                  className="w-full"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Connecting...
-                    </>
-                  ) : (
-                    <>
-                      <Calendar className="mr-2 h-4 w-4" />
-                      Connect Google Calendar
-                    </>
-                  )}
-                </Button>
+                <div className="space-y-3">
+                  <Button 
+                    onClick={handleConnectCalendar} 
+                    size="lg" 
+                    className="w-full"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="mr-2 h-4 w-4" />
+                        Connect Google Calendar
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => setStep(2)} 
+                    variant="outline"
+                    size="lg" 
+                    className="w-full"
+                    disabled={loading}
+                  >
+                    Skip for Now
+                  </Button>
+                </div>
+                <p className="text-xs text-center text-muted-foreground">
+                  You can connect your calendar later from settings
+                </p>
               </div>
             )}
 
