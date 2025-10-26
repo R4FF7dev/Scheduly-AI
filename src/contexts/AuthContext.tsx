@@ -1,14 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '@/services/auth.service';
-import { userService } from '@/services/user.service';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface User {
   id: string;
   name: string;
   email: string;
   avatar?: string;
-  created_at?: string;
 }
 
 interface AuthContextType {
@@ -16,6 +16,7 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   login: (credentials: { email: string; password: string }) => Promise<any>;
+  loginWithGoogle: () => Promise<void>;
   register: (userData: { email: string; password: string; name: string }) => Promise<any>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -29,28 +30,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    // Check active session on mount
     checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+          });
+          setIsAuthenticated(true);
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const checkAuth = async () => {
-    if (authService.isAuthenticated()) {
-      try {
-        const userData = await userService.getProfile();
-        setUser(userData);
+    try {
+      const currentUser = await authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
         setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setIsAuthenticated(false);
       }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const login = async (credentials: { email: string; password: string }) => {
     try {
       const response = await authService.login(credentials);
       
-      // Only set user if login was successful
       if (response.success && response.user) {
         setUser(response.user);
         setIsAuthenticated(true);
@@ -61,9 +88,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      await authService.loginWithGoogle();
+      // User will be set by onAuthStateChange after redirect
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const register = async (userData: { email: string; password: string; name: string }) => {
     const response = await authService.register(userData);
-    // Only set user if registration was successful
+    
     if (response.success && response.user) {
       setUser(response.user);
       setIsAuthenticated(true);
@@ -71,14 +107,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return response;
   };
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('auth_token');
-    setUser(null);
-    setIsAuthenticated(false);
-    toast({
-      title: "Logged out successfully",
-    });
+  const logout = async () => {
+    try {
+      await authService.logout();
+      setUser(null);
+      setIsAuthenticated(false);
+      toast({
+        title: "Logged out successfully",
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -87,6 +126,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       loading, 
       isAuthenticated, 
       login, 
+      loginWithGoogle,
       register, 
       logout,
       refreshUser: checkAuth 
