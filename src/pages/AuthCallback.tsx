@@ -24,39 +24,17 @@ const AuthCallback = () => {
         if (session?.user) {
           console.log('✅ User authenticated:', session.user.email);
           
-          // Create user_integrations if doesn't exist
-          const { data: integration, error: integrationError } = await supabase
+          const { data: integration } = await supabase
             .from('user_integrations')
             .select('onboarding_completed, onboarding_step')
             .eq('user_id', session.user.id)
             .single();
-          
-          // If no integration record, create one
-          if (!integration) {
-            console.log('📝 Creating user_integrations record...');
-            const { error: insertError } = await supabase
-              .from('user_integrations')
-              .insert({
-                user_id: session.user.id,
-                onboarding_step: 1,
-              });
-            
-            if (insertError) {
-              console.error('Integration insert error:', insertError);
-            }
-            
-            // New user -> onboarding
-            navigate('/dashboard/onboarding');
-            return;
-          }
-          
-          // Existing user -> check onboarding status
-          if (!integration.onboarding_completed) {
-            console.log('📋 Redirecting to onboarding...');
-            navigate('/dashboard/onboarding');
-          } else {
-            console.log('🏠 Redirecting to dashboard...');
+
+          // Strict check for completion
+          if (integration && integration.onboarding_completed === true) {
             navigate('/dashboard');
+          } else {
+            navigate('/dashboard/onboarding');
           }
         } else {
           console.log('⚠️ No session found');
