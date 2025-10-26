@@ -10,18 +10,34 @@ const getUserId = (): string => {
 
 export const whatsappService = {
   connect: async (phoneNumber: string, userId: string, countryCode?: string) => {
-    return api.post(API_ENDPOINTS.whatsapp.connect, {
-      user_id: userId,
-      phone_number: phoneNumber,
-      country_code: countryCode || ''
-    });
+    try {
+      const response = await api.post(API_ENDPOINTS.whatsapp.connect, {
+        user_id: userId,
+        phone_number: phoneNumber,
+        country_code: countryCode || ''
+      });
+      
+      // Handle response properly
+      return response;
+    } catch (error: any) {
+      console.error('WhatsApp connect error:', error);
+      // Re-throw with clearer message
+      throw new Error(error.message || 'Failed to send verification code');
+    }
   },
   
   verify: async (verificationCode: string, userId: string) => {
-    return api.post(API_ENDPOINTS.whatsapp.verify, {
-      user_id: userId,
-      verification_code: verificationCode
-    });
+    try {
+      const response = await api.post(API_ENDPOINTS.whatsapp.verify, {
+        user_id: userId,
+        verification_code: verificationCode
+      });
+      
+      return response;
+    } catch (error: any) {
+      console.error('WhatsApp verify error:', error);
+      throw new Error(error.message || 'Verification failed');
+    }
   },
   
   disconnect: async () => {
