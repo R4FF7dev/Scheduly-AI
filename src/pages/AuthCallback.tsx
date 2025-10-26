@@ -13,50 +13,43 @@ const AuthCallback = () => {
       try {
         console.log('🔵 OAuth callback started...');
         
-        // Get the session from the URL hash
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        console.log('🟢 Session:', session?.user?.id);
-        console.log('🔴 Error:', sessionError);
         
         if (sessionError) throw sessionError;
         
         if (session?.user) {
           console.log('✅ User authenticated:', session.user.email);
           
-          // Create user_integrations if doesn't exist
+          // Check onboarding status
           const { data: integration, error: integrationError } = await supabase
             .from('user_integrations')
             .select('onboarding_completed, onboarding_step')
             .eq('user_id', session.user.id)
-            .single();
+            .maybeSingle();
+          
+          console.log('📊 Integration:', integration);
           
           // If no integration record, create one
           if (!integration) {
-            console.log('📝 Creating user_integrations record...');
-            const { error: insertError } = await supabase
+            console.log('📝 Creating user_integrations...');
+            await supabase
               .from('user_integrations')
               .insert({
                 user_id: session.user.id,
                 onboarding_step: 1,
+                onboarding_completed: false,
               });
-            
-            if (insertError) {
-              console.error('Integration insert error:', insertError);
-            }
-            
-            // New user -> onboarding
             navigate('/dashboard/onboarding');
             return;
           }
           
-          // Existing user -> check onboarding status
-          if (!integration.onboarding_completed) {
-            console.log('📋 Redirecting to onboarding...');
-            navigate('/dashboard/onboarding');
-          } else {
-            console.log('🏠 Redirecting to dashboard...');
+          // STRICT CHECK: Only go to dashboard if truly completed
+          if (integration.onboarding_completed === true) {
+            console.log('🏠 Onboarding complete → Dashboard');
             navigate('/dashboard');
+          } else {
+            console.log('📋 Onboarding incomplete → Onboarding (step ' + integration.onboarding_step + ')');
+            navigate('/dashboard/onboarding');
           }
         } else {
           console.log('⚠️ No session found');
@@ -70,8 +63,6 @@ const AuthCallback = () => {
           description: error.message || "Failed to complete sign in",
           variant: "destructive"
         });
-        
-        // Redirect to auth after 3 seconds
         setTimeout(() => navigate('/auth'), 3000);
       }
     };
