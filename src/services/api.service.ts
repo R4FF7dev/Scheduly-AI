@@ -1,49 +1,63 @@
-import axios from 'axios';
-import { API_BASE_URL } from '@/config/api.config';
+import { supabase } from '@/integrations/supabase/client';
 
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
+interface RequestOptions extends RequestInit {
+  skipAuth?: boolean;
+}
+
+// Base fetch function with Supabase auth
+const makeRequest = async (url: string, options: RequestOptions = {}) => {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-  },
-});
-
-// Add auth token to requests
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    ...(options.headers as Record<string, string>),
+  };
+  
+  // Add Supabase session token if not skipping auth
+  if (!options.skipAuth) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
   }
-  return config;
-});
-
-// Handle errors globally
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  
+  const config: RequestInit = {
+    ...options,
+    headers,
+  };
+  
+  try {
+    const response = await fetch(url, config);
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+    }
+    
+    return data;
+  } catch (error) {
     console.error('API Error:', error);
-    return Promise.reject(error);
+    throw error;
   }
-);
+};
 
+// API Methods
 export const api = {
-  get: async (endpoint: string) => {
-    const response = await apiClient.get(endpoint);
-    return response.data;
-  },
-  
-  post: async (endpoint: string, data?: any) => {
-    const response = await apiClient.post(endpoint, data);
-    return response.data;
-  },
-  
-  put: async (endpoint: string, data?: any) => {
-    const response = await apiClient.put(endpoint, data);
-    return response.data;
-  },
-  
-  delete: async (endpoint: string) => {
-    const response = await apiClient.delete(endpoint);
-    return response.data;
-  },
+  get: (url: string, options: RequestOptions = {}) => 
+    makeRequest(url, { ...options, method: 'GET' }),
+    
+  post: (url: string, data?: any, options: RequestOptions = {}) => 
+    makeRequest(url, { 
+      ...options, 
+      method: 'POST', 
+      body: JSON.stringify(data) 
+    }),
+    
+  put: (url: string, data?: any, options: RequestOptions = {}) => 
+    makeRequest(url, { 
+      ...options, 
+      method: 'PUT', 
+      body: JSON.stringify(data) 
+    }),
+    
+  delete: (url: string, options: RequestOptions = {}) => 
+    makeRequest(url, { ...options, method: 'DELETE' }),
 };
