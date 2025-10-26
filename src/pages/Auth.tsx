@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login, register } = useAuth();
+  const { login, register, loginWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("signin");
 
@@ -63,7 +63,14 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    toast.error('Google sign-in is not yet configured');
+    setIsLoading(true);
+    try {
+      await loginWithGoogle();
+      // Will redirect to Google, then back to callback
+    } catch (error: any) {
+      toast.error(error.message || 'Google sign-in failed');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -183,7 +190,7 @@ const Auth = () => {
               disabled={isLoading}
             >
               <Mail className="w-4 h-4 mr-2" />
-              Google
+              Continue with Google
             </Button>
           </div>
         </CardContent>
