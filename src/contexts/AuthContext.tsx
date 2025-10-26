@@ -63,6 +63,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const currentUser = await authService.getCurrentUser();
       if (currentUser) {
+        // Defensive: Ensure user_integrations exists
+        const { data: integration, error: fetchError } = await supabase
+          .from('user_integrations')
+          .select('user_id, onboarding_completed, onboarding_step')
+          .eq('user_id', currentUser.id)
+          .maybeSingle(); // Don't throw if missing
+        
+        if (!integration && !fetchError) {
+          console.log('⚠️ Missing user_integrations, creating...');
+          const { error: insertError } = await supabase
+            .from('user_integrations')
+            .insert({ 
+              user_id: currentUser.id, 
+              onboarding_step: 1,
+              onboarding_completed: false 
+            });
+          
+          if (insertError) {
+            console.error('❌ Failed to create user_integrations:', insertError);
+            // Don't block login, trigger should have handled this
+          }
+        }
+        
         setUser(currentUser);
         setIsAuthenticated(true);
       }
