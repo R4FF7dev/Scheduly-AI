@@ -31,8 +31,8 @@ export const useTrialStatus = () => {
       }
 
       try {
-        // Type assertion needed: auto-generated types are from Lovable Cloud DB (brwdpahslxwqwbncfpqy)
-        // but runtime uses hardcoded config pointing to custom DB (xxvlxrvsennoatbntuhc)
+        // Type assertion needed: auto-generated types don't match custom database schema
+        // Runtime uses hardcoded config pointing to xxvlxrvsennoatbntuhc
         const { data, error } = await supabase
           .from('user_integrations')
           .select('trial_meetings_used, trial_meetings_limit, trial_expires_at, subscription_status')
