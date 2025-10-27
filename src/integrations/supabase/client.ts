@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
-import { SUPABASE_CONFIG } from '@/config/supabase.override';
+import { SUPABASE_CONFIG } from '@/config/supabase.config';
 
 // Use hardcoded config instead of env vars
 export const supabase = createClient<Database>(
