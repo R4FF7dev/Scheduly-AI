@@ -9,6 +9,7 @@ import { useIntegrationStatus } from "@/hooks/useIntegrationStatus";
 import { ConnectedDashboard } from "@/components/dashboard/ConnectedDashboard";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useTrialStatus } from '@/hooks/useTrialStatus';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ const Dashboard = () => {
   const { isFullyConnected, isLoading, isCalendarConnected, whatsappStatus, refetch: refetchIntegrationStatus } = useIntegrationStatus();
   const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+  const { meetingsRemaining, daysRemaining } = useTrialStatus();
 
   // Fetch calendar events when fully connected
   useEffect(() => {
@@ -95,7 +97,7 @@ const Dashboard = () => {
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg md:text-xl font-bold text-blue-900 mb-1">🎉 Free Trial Active</h3>
-                <p className="text-sm md:text-base text-blue-700">14 days remaining - Enjoy unlimited features</p>
+                <p className="text-sm md:text-base text-blue-700">{meetingsRemaining} free meetings remaining • {daysRemaining} days left</p>
               </div>
               <Button onClick={() => navigate('/dashboard/billing')} className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto">
                 Upgrade Now
