@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTrialStatus } from "@/hooks/useTrialStatus";
 
 export const TrialBanner = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export const TrialBanner = () => {
   const [daysRemaining, setDaysRemaining] = useState(14);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { meetingsRemaining } = useTrialStatus();
   
   // Safely get auth - handle case where provider isn't ready
   let user = null;
@@ -158,7 +160,7 @@ export const TrialBanner = () => {
           <span className={isMobile ? 'text-base' : 'text-lg'}>🎉</span>
           <span className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
             <span className="hidden sm:inline">Free Trial: {meetingsRemaining} free meetings remaining to explore all features</span>
-            <span className="sm:hidden">Trial: {{meetingsRemaining} free meetings</span>
+            <span className="sm:hidden">Trial: {meetingsRemaining} free meetings</span>
           </span>
         </div>
         <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-2 sm:gap-4'}`}>
