@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const useTrialStatus = () => {
   const { user } = useAuth();
@@ -16,69 +18,63 @@ export const useTrialStatus = () => {
 
   useEffect(() => {
     const fetchTrialStatus = async () => {
-      if (!user?.id) {
+      if (!user?.email) {
         setTrialStatus(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
       try {
-        const { data, error } = await supabase
-          .from('user_integrations')
-          .select('trial_meetings_used, trial_meetings_limit, trial_expires_at, subscription_status')
-          .eq('user_id', user.id)
-          .single();
+        // Fetch subscription data from n8n API
+        const response = await axios.get(`${API_BASE_URL}/user/subscription`, {
+          params: { email: user.email }
+        });
 
-        if (error) {
-          console.error('Error fetching trial status:', error);
-          setTrialStatus(prev => ({ ...prev, isLoading: false }));
-          return;
-        }
+        const subscription = response.data;
 
-        if (data) {
-          const expiresAt = new Date(data.trial_expires_at);
-          const daysRemaining = Math.max(0, Math.ceil(
-            (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-          ));
-
+        if (subscription) {
+          // User has active subscription
           setTrialStatus({
-            meetingsUsed: data.trial_meetings_used || 0,
-            meetingsLimit: data.trial_meetings_limit || 20,
-            meetingsRemaining: Math.max(0, 
-              (data.trial_meetings_limit || 20) - (data.trial_meetings_used || 0)
-            ),
-            daysRemaining,
-            expiresAt,
-            status: data.subscription_status || 'trial',
+            meetingsUsed: 0,
+            meetingsLimit: 999,
+            meetingsRemaining: 999,
+            daysRemaining: 999,
+            expiresAt: null,
+            status: 'active',
+            isLoading: false
+          });
+        } else {
+          // Free trial user (null/404 is normal state)
+          setTrialStatus({
+            meetingsUsed: 0,
+            meetingsLimit: 20,
+            meetingsRemaining: 20,
+            daysRemaining: 30,
+            expiresAt: null,
+            status: 'trial',
             isLoading: false
           });
         }
-      } catch (error) {
-        console.error('Unexpected error fetching trial status:', error);
-        setTrialStatus(prev => ({ ...prev, isLoading: false }));
+      } catch (error: any) {
+        // Only show errors for real API failures (500, network errors)
+        if (error.response?.status !== 404 && error.response?.status !== 400) {
+          console.error('Error fetching subscription status:', error);
+        }
+        
+        // Default to trial state for 404/null responses
+        setTrialStatus({
+          meetingsUsed: 0,
+          meetingsLimit: 20,
+          meetingsRemaining: 20,
+          daysRemaining: 30,
+          expiresAt: null,
+          status: 'trial',
+          isLoading: false
+        });
       }
     };
 
     fetchTrialStatus();
-
-    // Real-time subscription for updates
-    const subscription = supabase
-      .channel('trial_status_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'user_integrations',
-          filter: `user_id=eq.${user?.id}`
-        },
-        () => fetchTrialStatus()
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [user?.id]);
+  }, [user?.email]);
 
   return trialStatus;
 };
