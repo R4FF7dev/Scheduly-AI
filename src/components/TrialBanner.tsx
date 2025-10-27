@@ -157,8 +157,8 @@ export const TrialBanner = () => {
         <div className="flex items-center gap-2 text-white">
           <span className={isMobile ? 'text-base' : 'text-lg'}>🎉</span>
           <span className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
-            <span className="hidden sm:inline">Free Trial: {daysRemaining} days remaining to explore all features</span>
-            <span className="sm:hidden">Trial: {daysRemaining} days left</span>
+            <span className="hidden sm:inline">Free Trial: {meetingsRemaining} free meetings remaining to explore all features</span>
+            <span className="sm:hidden">Trial: {{meetingsRemaining} free meetings</span>
           </span>
         </div>
         <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-2 sm:gap-4'}`}>
