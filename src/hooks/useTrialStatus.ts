@@ -2,6 +2,15 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Local interface for trial data - bypasses auto-generated types from Lovable Cloud
+// Runtime uses hardcoded config pointing to xxvlxrvsennoatbntuhc which has these columns
+interface UserIntegrationTrialData {
+  trial_meetings_used: number;
+  trial_meetings_limit: number;
+  trial_expires_at: string;
+  subscription_status: 'trial' | 'active' | 'expired';
+}
+
 export const useTrialStatus = () => {
   const { user } = useAuth();
   const [trialStatus, setTrialStatus] = useState({
@@ -22,11 +31,13 @@ export const useTrialStatus = () => {
       }
 
       try {
+        // Type assertion needed: auto-generated types are from Lovable Cloud DB (brwdpahslxwqwbncfpqy)
+        // but runtime uses hardcoded config pointing to custom DB (xxvlxrvsennoatbntuhc)
         const { data, error } = await supabase
           .from('user_integrations')
           .select('trial_meetings_used, trial_meetings_limit, trial_expires_at, subscription_status')
           .eq('user_id', user.id)
-          .single();
+          .single() as { data: UserIntegrationTrialData | null; error: any };
 
         if (error) {
           console.error('Error fetching trial status:', error);
