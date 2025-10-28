@@ -42,7 +42,7 @@ export const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-24 md:pt-0 pb-16 md:pb-0">
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-8 md:pt-0 pb-8 md:pb-0">
       {/* Animated gradient background */}
       <div 
         className="absolute inset-0 opacity-90"
@@ -62,25 +62,27 @@ export const Hero = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left content */}
           <div className="text-center lg:text-left animate-fade-up">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white mb-6 animate-scale-in">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white mb-3 lg:mb-6 animate-scale-in">
               <Sparkles className="w-4 h-4" />
               <span className="text-sm font-medium">AI-Powered Meeting Assistant</span>
             </div>
             
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              Your AI Meeting Assistant
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-3 lg:mb-6 leading-tight">
+              <span className="lg:inline">Your AI</span>
+              <br className="lg:hidden" />
+              <span className="lg:inline"> Meeting Assistant</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
+            <p className="text-xl md:text-2xl text-white/90 mb-4 lg:mb-8 leading-relaxed">
               Schedule Smarter, Not Harder
             </p>
             
-            <p className="text-lg text-white/80 mb-10 max-w-2xl">
+            <p className="text-base lg:text-lg text-white/80 mb-6 lg:mb-10 max-w-2xl">
               Let AI handle your meeting scheduling through WhatsApp. Get automatic reminders, conflict resolution, and meeting summaries - all in your pocket.
             </p>
 
             {/* Mobile video - appears here on mobile only */}
-            <div className="lg:hidden mb-8 relative animate-scale-in" style={{ animationDelay: "0.2s" }}>
+            <div className="lg:hidden mb-6 relative animate-scale-in" style={{ animationDelay: "0.2s" }}>
               <div className="relative w-full aspect-video">
                 <video 
                   ref={videoRef}
