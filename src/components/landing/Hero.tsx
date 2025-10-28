@@ -68,9 +68,10 @@ export const Hero = () => {
             </div>
             
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-3 lg:mb-6 leading-tight">
-              <span className="lg:inline">Your AI</span>
-              <br className="lg:hidden" />
-              <span className="lg:inline whitespace-nowrap"> Meeting Assistant</span>
+              <span className="block lg:inline">Your AI</span>
+              <span className="whitespace-nowrap"> Meeting</span>
+              <br />
+              <span>Assistant</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-white/90 mb-4 lg:mb-8 leading-relaxed">
@@ -92,6 +93,7 @@ export const Hero = () => {
                   muted
                   playsInline
                   preload="auto"
+                  webkit-playsinline="true"
                   className="absolute inset-0 h-full w-full object-cover rounded-lg drop-shadow-2xl cursor-pointer"
                   onClick={togglePlay}
                   onPlay={() => setIsPlaying(true)}
@@ -108,7 +110,7 @@ export const Hero = () => {
                 />
                 
                 {/* Custom video controls */}
-                <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="absolute bottom-4 right-4 flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">
                   <button
                     onClick={toggleMute}
                     className="p-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200"
@@ -174,6 +176,7 @@ export const Hero = () => {
                 muted
                 playsInline
                 preload="auto"
+                webkit-playsinline="true"
                 className="absolute inset-0 h-full w-full object-cover rounded-lg drop-shadow-2xl cursor-pointer"
                 onClick={togglePlay}
                 onPlay={() => setIsPlaying(true)}
@@ -190,7 +193,7 @@ export const Hero = () => {
               />
               
               {/* Custom video controls */}
-              <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute bottom-4 right-4 flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">
                 <button
                   onClick={toggleMute}
                   className="p-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200"
