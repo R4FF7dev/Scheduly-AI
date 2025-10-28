@@ -114,7 +114,10 @@ export const Hero = () => {
                 {/* Custom video controls */}
                 <div className="absolute bottom-4 right-4 flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">
                   <button
-                    onClick={toggleMute}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleMute();
+                    }}
                     className="p-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200"
                     aria-label={isMuted ? "Unmute video" : "Mute video"}
                   >
@@ -126,7 +129,10 @@ export const Hero = () => {
                   </button>
                   
                   <button
-                    onClick={toggleFullscreen}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFullscreen();
+                    }}
                     className="p-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200"
                     aria-label="Enter fullscreen"
                   >
@@ -197,7 +203,10 @@ export const Hero = () => {
               {/* Custom video controls */}
               <div className="absolute bottom-4 right-4 flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">
                 <button
-                  onClick={toggleMute}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleMute();
+                  }}
                   className="p-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200"
                   aria-label={isMuted ? "Unmute video" : "Mute video"}
                 >
@@ -209,7 +218,10 @@ export const Hero = () => {
                 </button>
                 
                 <button
-                  onClick={toggleFullscreen}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFullscreen();
+                  }}
                   className="p-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200"
                   aria-label="Enter fullscreen"
                 >
