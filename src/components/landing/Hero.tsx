@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 export const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -61,7 +61,7 @@ export const Hero = () => {
       <div className="container relative z-10 px-4 mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left content */}
-          <div className="text-center lg:text-left animate-fade-up">
+          <div className="text-center lg:text-left animate-fade-up order-2 lg:order-1">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white mb-6 animate-scale-in">
               <Sparkles className="w-4 h-4" />
               <span className="text-sm font-medium">AI-Powered Meeting Assistant</span>
@@ -111,7 +111,7 @@ export const Hero = () => {
           </div>
 
           {/* Right content - Hero mockup */}
-          <div className="relative animate-scale-in group" style={{ animationDelay: "0.2s" }}>
+          <div className="relative animate-scale-in group order-1 lg:order-2" style={{ animationDelay: "0.2s" }}>
             <div className="relative w-full aspect-video">
               <video 
                 ref={videoRef}
