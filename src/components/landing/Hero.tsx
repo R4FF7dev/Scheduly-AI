@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Volume2, VolumeX, Maximize } from "lucide-react";
 import heroVideo from "@/assets/hero-mockup.webm";
 import { useRef, useState } from "react";
-import heroMockup from "@/assets/hero-mockup-animated.jpg";
+
 import profile1 from "@/assets/profile-1.jpg";
 import profile2 from "@/assets/profile-2.jpg";
 import profile3 from "@/assets/profile-3.jpg";
@@ -12,6 +12,17 @@ import { Link } from "react-router-dom";
 export const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  };
 
   const toggleMute = () => {
     if (videoRef.current) {
@@ -101,17 +112,28 @@ export const Hero = () => {
 
           {/* Right content - Hero mockup */}
           <div className="relative animate-scale-in group" style={{ animationDelay: "0.2s" }}>
-            <div className="relative">
+            <div className="relative w-full aspect-video">
               <video 
                 ref={videoRef}
                 src={heroVideo}
-                poster={heroMockup}
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-auto drop-shadow-2xl rounded-lg"
-                aria-label="Scheduly AI WhatsApp Interface"
+                preload="auto"
+                className="absolute inset-0 h-full w-full object-cover rounded-lg drop-shadow-2xl cursor-pointer"
+                onClick={togglePlay}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    togglePlay();
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={isPlaying ? "Pause video" : "Play video"}
               />
               
               {/* Custom video controls */}
