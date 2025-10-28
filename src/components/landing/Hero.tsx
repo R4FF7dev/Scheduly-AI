@@ -68,10 +68,12 @@ export const Hero = () => {
             </div>
             
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-3 lg:mb-6 leading-tight">
-              <span className="block lg:inline">Your AI</span>
-              <span className="whitespace-nowrap"> Meeting</span>
-              <br />
-              <span>Assistant</span>
+              <span className="inline">Your AI</span>
+              <br className="lg:hidden" />
+              <span className="inline lg:whitespace-nowrap"> Meeting</span>
+              <span className="inline lg:hidden"> Assistant</span>
+              <br className="hidden lg:block" />
+              <span className="hidden lg:inline">Assistant</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-white/90 mb-4 lg:mb-8 leading-relaxed">
