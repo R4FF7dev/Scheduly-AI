@@ -18,8 +18,10 @@ export const Hero = () => {
     if (videoRef.current) {
       if (videoRef.current.paused) {
         videoRef.current.play();
+        setIsPlaying(true);
       } else {
         videoRef.current.pause();
+        setIsPlaying(false);
       }
     }
   };
@@ -33,7 +35,11 @@ export const Hero = () => {
 
   const toggleFullscreen = () => {
     if (videoRef.current) {
-      if (document.fullscreenElement) {
+      // iOS Safari fullscreen support
+      const video = videoRef.current as any;
+      if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
+      } else if (document.fullscreenElement) {
         document.exitFullscreen();
       } else {
         videoRef.current.requestFullscreen();
@@ -97,7 +103,10 @@ export const Hero = () => {
                   preload="auto"
                   webkit-playsinline="true"
                   className="absolute inset-0 h-full w-full object-cover rounded-lg drop-shadow-2xl cursor-pointer"
-                  onClick={togglePlay}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    togglePlay();
+                  }}
                   onPlay={() => setIsPlaying(true)}
                   onPause={() => setIsPlaying(false)}
                   onKeyDown={(e) => {
@@ -186,7 +195,10 @@ export const Hero = () => {
                 preload="auto"
                 webkit-playsinline="true"
                 className="absolute inset-0 h-full w-full object-cover rounded-lg drop-shadow-2xl cursor-pointer"
-                onClick={togglePlay}
+                onClick={(e) => {
+                  e.preventDefault();
+                  togglePlay();
+                }}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 onKeyDown={(e) => {
