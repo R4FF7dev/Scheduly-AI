@@ -67,7 +67,7 @@ export const Hero = () => {
               <span className="text-sm font-medium">AI-Powered Meeting Assistant</span>
             </div>
             
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-3 lg:mb-6 leading-tight">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-3 lg:mb-6 leading-tight">
               <span className="lg:inline">Your AI</span>
               <br className="lg:hidden" />
               <span className="lg:inline whitespace-nowrap"> Meeting Assistant</span>
