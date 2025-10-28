@@ -61,7 +61,7 @@ export const Hero = () => {
       <div className="container relative z-10 px-4 mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left content */}
-          <div className="text-center lg:text-left animate-fade-up order-2 lg:order-1">
+          <div className="text-center lg:text-left animate-fade-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white mb-6 animate-scale-in">
               <Sparkles className="w-4 h-4" />
               <span className="text-sm font-medium">AI-Powered Meeting Assistant</span>
@@ -78,6 +78,57 @@ export const Hero = () => {
             <p className="text-lg text-white/80 mb-10 max-w-2xl">
               Let AI handle your meeting scheduling through WhatsApp. Get automatic reminders, conflict resolution, and meeting summaries - all in your pocket.
             </p>
+
+            {/* Mobile video - appears here on mobile only */}
+            <div className="lg:hidden mb-8 relative animate-scale-in" style={{ animationDelay: "0.2s" }}>
+              <div className="relative w-full aspect-video">
+                <video 
+                  ref={videoRef}
+                  src={heroVideo}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="auto"
+                  className="absolute inset-0 h-full w-full object-cover rounded-lg drop-shadow-2xl cursor-pointer"
+                  onClick={togglePlay}
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      togglePlay();
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={isPlaying ? "Pause video" : "Play video"}
+                />
+                
+                {/* Custom video controls */}
+                <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <button
+                    onClick={toggleMute}
+                    className="p-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200"
+                    aria-label={isMuted ? "Unmute video" : "Mute video"}
+                  >
+                    {isMuted ? (
+                      <VolumeX className="w-5 h-5 text-white" />
+                    ) : (
+                      <Volume2 className="w-5 h-5 text-white" />
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={toggleFullscreen}
+                    className="p-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200"
+                    aria-label="Enter fullscreen"
+                  >
+                    <Maximize className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              </div>
+            </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link to="/auth?tab=signup">
@@ -110,8 +161,8 @@ export const Hero = () => {
             </div>
           </div>
 
-          {/* Right content - Hero mockup */}
-          <div className="relative animate-scale-in group order-1 lg:order-2" style={{ animationDelay: "0.2s" }}>
+          {/* Right content - Hero mockup - Desktop only */}
+          <div className="hidden lg:block relative animate-scale-in group" style={{ animationDelay: "0.2s" }}>
             <div className="relative w-full aspect-video">
               <video 
                 ref={videoRef}
