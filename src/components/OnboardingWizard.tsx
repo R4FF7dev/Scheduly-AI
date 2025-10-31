@@ -85,48 +85,50 @@ export const OnboardingWizard = () => {
     try {
       console.log('Starting calendar connection for user:', user.id);
       
-      // Call via edge function to avoid CORS issues
-      const response = await supabase.functions.invoke('calendar-connect', {
-        body: { user_id: user.id }
+      // Call n8n directly (now with CORS headers configured)
+      const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/connect', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: user.id })
       });
       
-      // Supabase returns data in a different structure
-      if (response.error) {
-        throw new Error(response.error.message || 'Failed to connect to calendar service');
-      }
+      console.log('Response status:', response.status);
       
-      const data = response.data;
+      const text = await response.text();
+      console.log('Raw response:', text);
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Invalid response: ${text.substring(0, 100)}`);
+      }
       
       console.log('Parsed data:', data);
       
-      // Check for errors in response data
+      if (!response.ok) {
+        throw new Error(data.error || `Server error: ${response.status}`);
+      }
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to generate OAuth URL');
       }
       
-      if (!data.authUrl) {
-        throw new Error('No authUrl in response');
-      }
-      
-      // Validate authUrl format
-      if (typeof data.authUrl !== 'string') {
-        throw new Error(`authUrl is not a string: ${typeof data.authUrl}`);
+      if (!data.authUrl || typeof data.authUrl !== 'string') {
+        throw new Error(`Invalid authUrl: ${data.authUrl}`);
       }
       
       if (!data.authUrl.startsWith('http')) {
-        throw new Error(`Invalid authUrl format: ${data.authUrl}`);
+        throw new Error(`authUrl doesn't start with http: ${data.authUrl}`);
       }
       
-      // Log before redirect
-      console.log('About to redirect to:', data.authUrl);
-      
-      // Force full page redirect (not relative)
+      console.log('Redirecting to:', data.authUrl);
       window.location.replace(data.authUrl);
       
     } catch (error: any) {
       console.error('Calendar connection error:', error);
-      console.error('Error stack:', error.stack);
       toast({
         title: "Calendar Connection Failed",
         description: error.message || "Unable to connect calendar. Please try again.",
