@@ -1,4 +1,1 @@
 project_id = "xxvlxrvsennoatbntuhc"
-
-[functions.calendar-connect]
-verify_jwt = false

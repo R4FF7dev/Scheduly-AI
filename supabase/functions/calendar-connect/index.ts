@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,23 +13,41 @@ serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
-    console.log('Proxying calendar connect for user:', body.user_id);
-    
-    if (!body.user_id) {
-      throw new Error('user_id is required');
+    // Get JWT from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing authorization header');
+      throw new Error('Missing authorization header');
     }
+
+    // Create Supabase client to verify JWT and get user
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Get authenticated user from JWT
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     
-    // Call n8n from server-side (no CORS restrictions)
+    if (userError || !user) {
+      console.error('Unauthorized - user verification failed:', userError);
+      throw new Error('Unauthorized');
+    }
+
+    console.log('Proxying calendar connect for authenticated user:', user.id);
+    
+    // Call n8n with verified user_id from JWT
     const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/connect', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ user_id: user.id })
     });
     
     const text = await response.text();
+    console.log('n8n response status:', response.status);
     console.log('n8n raw response:', text);
     
     let data;

@@ -85,9 +85,9 @@ export const OnboardingWizard = () => {
     try {
       console.log('Starting calendar connection for user:', user.id);
       
-      // Call Supabase Edge Function to avoid CORS and keep server secret
+      // Call Supabase Edge Function (user_id comes from JWT, not body)
       const { data, error } = await supabase.functions.invoke('calendar-connect', {
-        body: { user_id: user.id },
+        body: {},
       });
 
       if (error) {
