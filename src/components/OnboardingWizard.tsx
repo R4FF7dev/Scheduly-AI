@@ -85,18 +85,40 @@ export const OnboardingWizard = () => {
     try {
       const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/connect', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ user_id: user.id })
       });
       
-      const data = await response.json();
+      // Log raw response for debugging
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
       
-      // Check for errors or missing authUrl
-      if (!response.ok || !data.success || data.error || !data.authUrl) {
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error(`Expected JSON response, got ${contentType}`);
+      }
+      
+      const data = await response.json();
+      console.log('Parsed data:', data);
+      
+      // Check for errors
+      if (!response.ok) {
+        throw new Error(data.error || `Server error: ${response.status}`);
+      }
+      
+      if (!data.success) {
         throw new Error(data.error || 'Failed to generate OAuth URL');
       }
       
+      if (!data.authUrl) {
+        throw new Error('No OAuth URL returned from server');
+      }
+      
       // Redirect to Google OAuth
+      console.log('Redirecting to:', data.authUrl);
       window.location.href = data.authUrl;
       
     } catch (error: any) {
