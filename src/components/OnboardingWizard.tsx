@@ -83,52 +83,55 @@ export const OnboardingWizard = () => {
   const handleConnectCalendar = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/connect', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: user.id })
+      console.log('Starting calendar connection for user:', user.id);
+      
+      // Call via edge function to avoid CORS issues
+      const response = await supabase.functions.invoke('calendar-connect', {
+        body: { user_id: user.id }
       });
       
-      // Log raw response for debugging
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error(`Expected JSON response, got ${contentType}`);
+      // Supabase returns data in a different structure
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to connect to calendar service');
       }
       
-      const data = await response.json();
+      const data = response.data;
+      
       console.log('Parsed data:', data);
       
-      // Check for errors
-      if (!response.ok) {
-        throw new Error(data.error || `Server error: ${response.status}`);
-      }
+      // Check for errors in response data
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to generate OAuth URL');
       }
       
       if (!data.authUrl) {
-        throw new Error('No OAuth URL returned from server');
+        throw new Error('No authUrl in response');
       }
       
-      // Redirect to Google OAuth
-      console.log('Redirecting to:', data.authUrl);
-      window.location.href = data.authUrl;
+      // Validate authUrl format
+      if (typeof data.authUrl !== 'string') {
+        throw new Error(`authUrl is not a string: ${typeof data.authUrl}`);
+      }
+      
+      if (!data.authUrl.startsWith('http')) {
+        throw new Error(`Invalid authUrl format: ${data.authUrl}`);
+      }
+      
+      // Log before redirect
+      console.log('About to redirect to:', data.authUrl);
+      
+      // Force full page redirect (not relative)
+      window.location.replace(data.authUrl);
       
     } catch (error: any) {
       console.error('Calendar connection error:', error);
+      console.error('Error stack:', error.stack);
       toast({
         title: "Calendar Connection Failed",
         description: error.message || "Unable to connect calendar. Please try again.",
         variant: "destructive"
       });
-    } finally {
       setLoading(false);
     }
   };
