@@ -85,21 +85,35 @@ export const OnboardingWizard = () => {
     try {
       console.log('Starting calendar connection for user:', user.id);
       
-      // Call via edge function to avoid CORS issues
-      const response = await supabase.functions.invoke('calendar-connect', {
-        body: { user_id: user.id }
+      const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/connect', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: user.id })
       });
       
-      // Supabase returns data in a different structure
-      if (response.error) {
-        throw new Error(response.error.message || 'Failed to connect to calendar service');
-      }
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
-      const data = response.data;
+      // Get raw text first
+      const rawText = await response.text();
+      console.log('Raw response text:', rawText);
+      
+      // Try to parse as JSON
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch (parseError) {
+        throw new Error(`Invalid JSON response: ${rawText.substring(0, 100)}`);
+      }
       
       console.log('Parsed data:', data);
       
-      // Check for errors in response data
+      // Check for errors
+      if (!response.ok) {
+        throw new Error(data.error || `Server error: ${response.status}`);
+      }
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to generate OAuth URL');
