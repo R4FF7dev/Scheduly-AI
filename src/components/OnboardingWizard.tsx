@@ -12,20 +12,20 @@ import { useAuth } from "@/contexts/AuthContext";
 import { whatsappService } from "@/services/whatsapp.service";
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
-
 export const OnboardingWizard = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
-  
+  const {
+    user
+  } = useAuth();
+
   // Guard: Redirect if not authenticated
   if (!user) {
     navigate('/auth');
     return null;
   }
-  
   const [userName, setUserName] = useState<string>("");
-  
+
   // Determine initial step from query params
   const queryStep = searchParams.get('step');
   const getInitialStep = () => {
@@ -33,18 +33,17 @@ export const OnboardingWizard = () => {
     if (queryStep === '2') return 2;
     return 1;
   };
-  
   const [step, setStep] = useState(getInitialStep());
   const [loading, setLoading] = useState(false);
-  
+
   // Step 2: WhatsApp
   const [phoneNumber, setPhoneNumber] = useState("");
-  
+
   // Step 3: Verification
   const [verificationCode, setVerificationCode] = useState("");
   const [codeExpiry, setCodeExpiry] = useState<number | null>(null);
   const [remainingTime, setRemainingTime] = useState(0);
-  
+
   // Step 4: Preferences
   const [meetingDuration, setMeetingDuration] = useState("30");
   const [bufferTime, setBufferTime] = useState("15");
@@ -55,7 +54,7 @@ export const OnboardingWizard = () => {
     if (user) {
       setUserName(user.name || user.email?.split('@')[0] || "");
     }
-    
+
     // Auto-detect timezone
     setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, [user]);
@@ -66,7 +65,6 @@ export const OnboardingWizard = () => {
       const interval = setInterval(() => {
         const remaining = Math.max(0, Math.floor((codeExpiry - Date.now()) / 1000));
         setRemainingTime(remaining);
-        
         if (remaining === 0) {
           clearInterval(interval);
           toast({
@@ -76,33 +74,31 @@ export const OnboardingWizard = () => {
           });
         }
       }, 1000);
-      
+
       // Set initial value immediately
       setRemainingTime(Math.max(0, Math.floor((codeExpiry - Date.now()) / 1000)));
-      
       return () => clearInterval(interval);
     }
   }, [step, codeExpiry]);
-
   const handleConnectCalendar = async () => {
     setLoading(true);
     try {
       console.log('🔗 Initiating calendar connection for user:', user.id);
-      
       const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/connect', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.id })
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: user.id
+        })
       });
-      
       console.log('📡 Response status:', response.status);
       const data = await response.json();
       console.log('📦 Response data:', data);
-      
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to connect calendar');
       }
-      
       if (data.authUrl) {
         console.log('🔀 Redirecting to Google OAuth:', data.authUrl);
         // Redirect to Google OAuth - user will come back via CalendarCallback
@@ -124,7 +120,6 @@ export const OnboardingWizard = () => {
       setLoading(false);
     }
   };
-
   const handleConnectWhatsApp = async () => {
     // Add basic E.164 validation
     if (!phoneNumber || !phoneNumber.startsWith('+')) {
@@ -135,17 +130,15 @@ export const OnboardingWizard = () => {
       });
       return;
     }
-
     setLoading(true);
     try {
       const response = await whatsappService.connect(phoneNumber, user.id);
-      
       if (response.success) {
         toast({
           title: "Code sent!",
-          description: `Check your WhatsApp at ${phoneNumber}`,
+          description: `Check your WhatsApp at ${phoneNumber}`
         });
-        
+
         // Set code expiry to 10 minutes from now
         setCodeExpiry(Date.now() + 10 * 60 * 1000);
         setStep(3);
@@ -160,7 +153,6 @@ export const OnboardingWizard = () => {
       setLoading(false);
     }
   };
-
   const handleVerifyWhatsApp = async () => {
     if (verificationCode.length !== 6) {
       toast({
@@ -170,19 +162,15 @@ export const OnboardingWizard = () => {
       });
       return;
     }
-
     setLoading(true);
     try {
       const response = await whatsappService.verify(verificationCode, user.id);
-      
       if (response.success) {
         await updateIntegrationStatus('whatsapp_connected', true);
-        
         toast({
           title: "Verified!",
           description: "WhatsApp connected successfully"
         });
-        
         setStep(4);
       }
     } catch (error) {
@@ -195,47 +183,42 @@ export const OnboardingWizard = () => {
       setLoading(false);
     }
   };
-
   const handleResendCode = async () => {
     await handleConnectWhatsApp();
   };
-
   const handleCompleteSetup = async () => {
     setLoading(true);
     try {
       // Save preferences with explicit conflict resolution
-      const { error: prefsError } = await supabase
-        .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          default_meeting_duration: parseInt(meetingDuration),
-          buffer_time: parseInt(bufferTime),
-          timezone: timezone
-        }, {
-          onConflict: 'user_id'  // ← Specify conflict field
-        });
-
+      const {
+        error: prefsError
+      } = await supabase.from('user_preferences').upsert({
+        user_id: user.id,
+        default_meeting_duration: parseInt(meetingDuration),
+        buffer_time: parseInt(bufferTime),
+        timezone: timezone
+      }, {
+        onConflict: 'user_id' // ← Specify conflict field
+      });
       if (prefsError) {
         console.error('Preferences error:', prefsError);
         throw prefsError;
       }
 
       // Update integrations status with explicit conflict resolution
-      const { error: integrationsError } = await supabase
-        .from('user_integrations')
-        .upsert({
-          user_id: user.id,
-          onboarding_completed: true,
-          onboarding_step: 4
-        }, {
-          onConflict: 'user_id'  // ← Specify conflict field
-        });
-
+      const {
+        error: integrationsError
+      } = await supabase.from('user_integrations').upsert({
+        user_id: user.id,
+        onboarding_completed: true,
+        onboarding_step: 4
+      }, {
+        onConflict: 'user_id' // ← Specify conflict field
+      });
       if (integrationsError) {
         console.error('Integrations error:', integrationsError);
         throw integrationsError;
       }
-
       toast({
         title: "Setup Complete! 🎉",
         description: "Welcome to Scheduly AI"
@@ -254,28 +237,18 @@ export const OnboardingWizard = () => {
       setLoading(false);
     }
   };
-
   const updateIntegrationStatus = async (field: string, value: boolean) => {
-    await supabase
-      .from('user_integrations')
-      .upsert({
-        user_id: user.id,
-        [field]: value,
-        onboarding_step: step
-      });
+    await supabase.from('user_integrations').upsert({
+      user_id: user.id,
+      [field]: value,
+      onboarding_step: step
+    });
   };
-
-  const progress = (step / 4) * 100;
+  const progress = step / 4 * 100;
   const minutes = Math.floor(remainingTime / 60);
   const seconds = remainingTime % 60;
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4 relative">
-      <Button
-        variant="ghost"
-        className="absolute top-6 left-6 gap-2 z-20"
-        onClick={() => navigate('/dashboard')}
-      >
+  return <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4 relative">
+      <Button variant="ghost" className="absolute top-6 left-6 gap-2 z-20" onClick={() => navigate('/dashboard')}>
         <ArrowLeft className="h-4 w-4" />
         Back to Dashboard
       </Button>
@@ -285,16 +258,9 @@ export const OnboardingWizard = () => {
           <CardHeader>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                {step > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setStep(step - 1)}
-                    disabled={loading}
-                  >
+                {step > 1 && <Button variant="ghost" size="icon" onClick={() => setStep(step - 1)} disabled={loading}>
                     <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                )}
+                  </Button>}
                 <CardTitle>Setup Your Account</CardTitle>
               </div>
               <span className="text-sm text-muted-foreground">Step {step} of 4</span>
@@ -303,13 +269,8 @@ export const OnboardingWizard = () => {
             
             {/* Progress circles */}
             <div className="flex justify-between items-center mb-6">
-              {[1, 2, 3, 4].map((s) => (
-                <div key={s} className="flex flex-col items-center gap-2">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    s < step ? 'bg-primary text-primary-foreground' :
-                    s === step ? 'bg-primary/20 text-primary border-2 border-primary' :
-                    'bg-muted text-muted-foreground'
-                  }`}>
+              {[1, 2, 3, 4].map(s => <div key={s} className="flex flex-col items-center gap-2">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${s < step ? 'bg-primary text-primary-foreground' : s === step ? 'bg-primary/20 text-primary border-2 border-primary' : 'bg-muted text-muted-foreground'}`}>
                     {s < step ? <CheckCircle className="h-5 w-5" /> : s}
                   </div>
                   <span className="text-xs text-muted-foreground">
@@ -318,15 +279,13 @@ export const OnboardingWizard = () => {
                     {s === 3 && 'Verify'}
                     {s === 4 && 'Preferences'}
                   </span>
-                </div>
-              ))}
+                </div>)}
             </div>
           </CardHeader>
 
           <CardContent className="space-y-6">
             {/* Step 1: Calendar */}
-            {step === 1 && (
-              <div className="space-y-6 text-center">
+            {step === 1 && <div className="space-y-6 text-center">
                 <div className="flex justify-center">
                   <Calendar className="h-20 w-20 text-primary" />
                 </div>
@@ -334,55 +293,34 @@ export const OnboardingWizard = () => {
                   <h2 className="text-2xl font-bold mb-2">
                     Welcome{userName && `, ${userName}`}! 👋
                   </h2>
-                  <CardDescription className="text-base">
-                    Connect your Google Calendar to manage availability (optional)
-                  </CardDescription>
+                  <CardDescription className="text-base">Connect your Google Calendar to manage availability</CardDescription>
                 </div>
                 <div className="bg-muted p-4 rounded-lg text-sm text-left">
                   <p className="font-semibold mb-2">Why we need this:</p>
-                  <p className="text-muted-foreground">
-                    We'll sync your calendar to automatically schedule meetings and avoid conflicts
-                  </p>
+                  <p className="text-muted-foreground">We'll sync your calendar to schedule meetings and avoid conflicts via WhatsApp</p>
                 </div>
                 <div className="space-y-3">
-                  <Button 
-                    onClick={handleConnectCalendar} 
-                    size="lg" 
-                    className="w-full"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
+                  <Button onClick={handleConnectCalendar} size="lg" className="w-full" disabled={loading}>
+                    {loading ? <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Connecting...
-                      </>
-                    ) : (
-                      <>
+                      </> : <>
                         <Calendar className="mr-2 h-4 w-4" />
                         Connect Google Calendar
-                      </>
-                    )}
+                      </>}
                   </Button>
                   
-                  <Button 
-                    onClick={() => setStep(2)} 
-                    variant="outline"
-                    size="lg" 
-                    className="w-full"
-                    disabled={loading}
-                  >
+                  <Button onClick={() => setStep(2)} variant="outline" size="lg" className="w-full" disabled={loading}>
                     Skip for Now
                   </Button>
                 </div>
                 <p className="text-xs text-center text-muted-foreground">
                   You can connect your calendar later from settings
                 </p>
-              </div>
-            )}
+              </div>}
 
             {/* Step 2: WhatsApp Phone */}
-            {step === 2 && (
-              <div className="space-y-6">
+            {step === 2 && <div className="space-y-6">
                 <div className="flex justify-center">
                   <MessageSquare className="h-20 w-20 text-primary" />
                 </div>
@@ -401,40 +339,22 @@ export const OnboardingWizard = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Phone Number</label>
-                    <PhoneInput
-                      international
-                      defaultCountry="US"
-                      value={phoneNumber}
-                      onChange={(value) => setPhoneNumber(value || "")}
-                      className="phone-input"
-                      placeholder="Enter phone number"
-                    />
+                    <PhoneInput international defaultCountry="US" value={phoneNumber} onChange={value => setPhoneNumber(value || "")} className="phone-input" placeholder="Enter phone number" />
                   </div>
-                  <Button 
-                    onClick={handleConnectWhatsApp} 
-                    size="lg" 
-                    className="w-full"
-                    disabled={loading || !phoneNumber || phoneNumber.length < 10}
-                  >
-                    {loading ? (
-                      <>
+                  <Button onClick={handleConnectWhatsApp} size="lg" className="w-full" disabled={loading || !phoneNumber || phoneNumber.length < 10}>
+                    {loading ? <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Sending Code...
-                      </>
-                    ) : (
-                      <>
+                      </> : <>
                         <MessageSquare className="mr-2 h-4 w-4" />
                         Send Verification Code
-                      </>
-                    )}
+                      </>}
                   </Button>
                 </div>
-              </div>
-            )}
+              </div>}
 
             {/* Step 3: Verification */}
-            {step === 3 && (
-              <div className="space-y-6">
+            {step === 3 && <div className="space-y-6">
                 <div className="flex justify-center">
                   <CheckCircle className="h-20 w-20 text-primary" />
                 </div>
@@ -444,53 +364,28 @@ export const OnboardingWizard = () => {
                     Enter the 6-digit code sent to {phoneNumber}
                   </CardDescription>
                 </div>
-                {remainingTime > 0 && (
-                  <div className="text-center text-sm text-muted-foreground">
+                {remainingTime > 0 && <div className="text-center text-sm text-muted-foreground">
                     Code expires in {minutes}:{seconds.toString().padStart(2, '0')}
-                  </div>
-                )}
+                  </div>}
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Verification Code</label>
-                    <Input
-                      type="text"
-                      maxLength={6}
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
-                      placeholder="000000"
-                      className="text-center text-2xl tracking-widest"
-                    />
+                    <Input type="text" maxLength={6} value={verificationCode} onChange={e => setVerificationCode(e.target.value.replace(/\D/g, ''))} placeholder="000000" className="text-center text-2xl tracking-widest" />
                   </div>
-                  <Button 
-                    onClick={handleVerifyWhatsApp} 
-                    size="lg" 
-                    className="w-full"
-                    disabled={loading || verificationCode.length !== 6}
-                  >
-                    {loading ? (
-                      <>
+                  <Button onClick={handleVerifyWhatsApp} size="lg" className="w-full" disabled={loading || verificationCode.length !== 6}>
+                    {loading ? <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Verifying...
-                      </>
-                    ) : (
-                      'Verify Code'
-                    )}
+                      </> : 'Verify Code'}
                   </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={handleResendCode}
-                    className="w-full"
-                    disabled={loading}
-                  >
+                  <Button variant="ghost" onClick={handleResendCode} className="w-full" disabled={loading}>
                     Resend Code
                   </Button>
                 </div>
-              </div>
-            )}
+              </div>}
 
             {/* Step 4: Preferences */}
-            {step === 4 && (
-              <div className="space-y-6">
+            {step === 4 && <div className="space-y-6">
                 <div className="flex justify-center">
                   <Settings className="h-20 w-20 text-primary" />
                 </div>
@@ -635,30 +530,19 @@ export const OnboardingWizard = () => {
                     </p>
                   </div>
                   
-                  <Button 
-                    onClick={handleCompleteSetup} 
-                    size="lg" 
-                    className="w-full"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
+                  <Button onClick={handleCompleteSetup} size="lg" className="w-full" disabled={loading}>
+                    {loading ? <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Saving...
-                      </>
-                    ) : (
-                      <>
+                      </> : <>
                         <CheckCircle className="mr-2 h-4 w-4" />
                         Complete Setup
-                      </>
-                    )}
+                      </>}
                   </Button>
                 </div>
-              </div>
-            )}
+              </div>}
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
