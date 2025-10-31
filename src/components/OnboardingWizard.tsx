@@ -85,43 +85,23 @@ export const OnboardingWizard = () => {
     try {
       console.log('Starting calendar connection for user:', user.id);
       
-      // Call n8n directly (now with CORS headers configured)
-      const response = await fetch('https://n8n.schedulyai.com/webhook/calendar/connect', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: user.id })
+      // Call Supabase Edge Function to avoid CORS and keep server secret
+      const { data, error } = await supabase.functions.invoke('calendar-connect', {
+        body: { user_id: user.id },
       });
-      
-      console.log('Response status:', response.status);
-      
-      const text = await response.text();
-      console.log('Raw response:', text);
-      
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        throw new Error(`Invalid response: ${text.substring(0, 100)}`);
+
+      if (error) {
+        throw new Error(error.message || 'Edge function error');
       }
-      
-      console.log('Parsed data:', data);
-      
-      if (!response.ok) {
-        throw new Error(data.error || `Server error: ${response.status}`);
+
+      console.log('Edge function data:', data);
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to generate OAuth URL');
       }
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to generate OAuth URL');
-      }
-      
-      if (!data.authUrl || typeof data.authUrl !== 'string') {
-        throw new Error(`Invalid authUrl: ${data.authUrl}`);
-      }
-      
-      if (!data.authUrl.startsWith('http')) {
-        throw new Error(`authUrl doesn't start with http: ${data.authUrl}`);
+
+      if (!data.authUrl || typeof data.authUrl !== 'string' || !data.authUrl.startsWith('http')) {
+        throw new Error(`Invalid authUrl: ${data?.authUrl}`);
       }
       
       console.log('Redirecting to:', data.authUrl);
