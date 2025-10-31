@@ -99,14 +99,22 @@ export const OnboardingWizard = () => {
       const data = await response.json();
       console.log('📦 Response data:', data);
       
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to connect calendar');
+      // Validate response structure and check for errors
+      if (!response.ok || data.success === false || data.success === '=false') {
+        const errorMsg = data.error || 'Failed to connect calendar';
+        // Handle malformed error messages
+        const cleanError = errorMsg.startsWith('=') ? errorMsg.substring(1) : errorMsg;
+        throw new Error(cleanError);
       }
       
-      if (data.authUrl) {
+      // Validate authUrl is a proper URL before redirecting
+      if (data.authUrl && data.authUrl !== '=' && data.authUrl.startsWith('http')) {
         console.log('🔀 Redirecting to Google OAuth:', data.authUrl);
         // Redirect to Google OAuth - user will come back via CalendarCallback
         window.location.href = data.authUrl;
+      } else if (data.authUrl && (data.authUrl === '=' || !data.authUrl.startsWith('http'))) {
+        // Invalid URL returned - backend configuration issue
+        throw new Error('Calendar integration is not configured on the backend. Please contact support.');
       } else {
         console.log('✅ Calendar already connected');
         // Already connected
