@@ -1,9 +1,26 @@
 import { api } from './api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
+import { supabase } from '@/integrations/supabase/client';
 
 export const calendarService = {
   connect: async () => {
-    return api.post(API_ENDPOINTS.calendar.connect, {});
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Call Supabase Edge Function instead of n8n directly (avoids CORS)
+    const { data, error } = await supabase.functions.invoke('calendar-connect', {
+      body: { user_id: user.id },
+    });
+
+    if (error) {
+      console.error('Calendar connect error:', error);
+      throw new Error(error.message || 'Failed to connect calendar');
+    }
+
+    return data;
   },
   
   disconnect: async () => {
