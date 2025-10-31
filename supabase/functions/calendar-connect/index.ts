@@ -28,11 +28,9 @@ serve(async (req) => {
       body: JSON.stringify(body)
     });
     
-    // Get response as text first for debugging
     const text = await response.text();
     console.log('n8n raw response:', text);
     
-    // Try to parse as JSON
     let data;
     try {
       data = JSON.parse(text);
@@ -41,7 +39,6 @@ serve(async (req) => {
       throw new Error(`Invalid JSON from n8n: ${text.substring(0, 100)}`);
     }
     
-    // Return the data to frontend
     return new Response(JSON.stringify(data), {
       status: response.status,
       headers: { 
