@@ -293,7 +293,7 @@ export const OnboardingWizard = () => {
                   <h2 className="text-2xl font-bold mb-2">
                     Welcome{userName && `, ${userName}`}! 👋
                   </h2>
-                  <CardDescription className="text-base">Connect your Google Calendar to manage availability</CardDescription>
+                  <CardDescription className="text-base">Connect your Google Calendar to manage availability and events</CardDescription>
                 </div>
                 <div className="bg-muted p-4 rounded-lg text-sm text-left">
                   <p className="font-semibold mb-2">Why we need this:</p>
