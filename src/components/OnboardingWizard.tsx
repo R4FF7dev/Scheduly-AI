@@ -83,25 +83,46 @@ export const OnboardingWizard = () => {
   const handleConnectCalendar = async () => {
     setLoading(true);
     try {
-      console.log('Starting calendar connection for user:', user.id);
+      console.log('Starting calendar connection for user:', user?.id);
       
-      // Call Supabase Edge Function (user_id comes from JWT, not body)
-      const { data, error } = await supabase.functions.invoke('calendar-connect', {
-        body: {},
+      if (!user?.id) {
+        throw new Error('User not logged in');
+      }
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      console.log('Supabase URL:', supabaseUrl);
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Supabase configuration missing');
+      }
+      
+      const url = `${supabaseUrl}/functions/v1/calendar-connect`;
+      console.log('Calling Edge Function:', url);
+      console.log('Sending user_id:', user.id);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`
+        },
+        body: JSON.stringify({ user_id: user.id }) // ← Make sure this is sent
       });
-
-      if (error) {
-        throw new Error(error.message || 'Edge function error');
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      if (data.success === false) {
+        throw new Error(data.error || 'Calendar connection failed');
       }
-
-      console.log('Edge function data:', data);
-
-      if (!data?.success) {
-        throw new Error(data?.error || 'Failed to generate OAuth URL');
-      }
-
-      if (!data.authUrl || typeof data.authUrl !== 'string' || !data.authUrl.startsWith('http')) {
-        throw new Error(`Invalid authUrl: ${data?.authUrl}`);
+      
+      if (!data.authUrl) {
+        throw new Error('No authUrl in response');
       }
       
       console.log('Redirecting to:', data.authUrl);
@@ -111,9 +132,10 @@ export const OnboardingWizard = () => {
       console.error('Calendar connection error:', error);
       toast({
         title: "Calendar Connection Failed",
-        description: error.message || "Unable to connect calendar. Please try again.",
+        description: error.message,
         variant: "destructive"
       });
+    } finally {
       setLoading(false);
     }
   };
