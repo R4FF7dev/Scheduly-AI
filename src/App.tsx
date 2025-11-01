@@ -30,14 +30,9 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Wrapper component to show TrialBanner only on dashboard routes
 const AppContent = () => {
-  const location = useLocation();
-  const isDashboard = location.pathname.startsWith('/dashboard');
-
   return (
     <>
-      {isDashboard && <TrialBanner />}
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
@@ -73,6 +68,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <TrialBanner />
           <AppContent />
         </BrowserRouter>
       </TooltipProvider>
