@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { whatsappService } from "@/services/whatsapp.service";
+import { calendarService } from "@/services/calendar.service";
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 export const OnboardingWizard = () => {
@@ -85,37 +86,7 @@ export const OnboardingWizard = () => {
     try {
       console.log('Starting calendar connection for user:', user?.id);
       
-      if (!user?.id) {
-        throw new Error('User not logged in');
-      }
-      
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      console.log('Supabase URL:', supabaseUrl);
-      
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('Supabase configuration missing');
-      }
-      
-      const url = `${supabaseUrl}/functions/v1/calendar-connect`;
-      console.log('Calling Edge Function:', url);
-      console.log('Sending user_id:', user.id);
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`
-        },
-        body: JSON.stringify({ user_id: user.id }) // ← Make sure this is sent
-      });
-      
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-      
-      const data = await response.json();
-      console.log('Response data:', data);
+      const data = await calendarService.connect();
       
       if (data.success === false) {
         throw new Error(data.error || 'Calendar connection failed');
