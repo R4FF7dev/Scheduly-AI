@@ -10,6 +10,7 @@ import { calendarService } from "@/services/calendar.service";
 import { whatsappService } from "@/services/whatsapp.service";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { SUPABASE_CONFIG } from "@/config/supabase.config";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,19 +31,16 @@ const Integrations = () => {
 
   const handleConnectCalendar = async () => {
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      if (!supabaseUrl || !supabaseAnonKey || !user?.id) {
-        throw new Error('Configuration missing');
+      if (!user?.id) {
+        throw new Error('User not authenticated');
       }
       
-      const url = `${supabaseUrl}/functions/v1/calendar-connect`;
+      const url = `${SUPABASE_CONFIG.url}/functions/v1/calendar-connect`;
       const response = await fetch(url, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`
+          'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
         },
         body: JSON.stringify({ user_id: user.id })
       });
