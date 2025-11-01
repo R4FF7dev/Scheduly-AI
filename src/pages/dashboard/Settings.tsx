@@ -5,21 +5,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2, Calendar, MessageSquare } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ExternalLink } from "lucide-react";
 
 const Settings = () => {
+  const navigate = useNavigate();
+  
   return (
     <DashboardLayout>
       <div className="p-8">
         <div className="mb-8 animate-fade-up">
           <h1 className="text-3xl font-bold mb-2">Settings</h1>
-          <p className="text-muted-foreground">Manage your account and integrations</p>
+          <p className="text-muted-foreground">Manage your account preferences</p>
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="animate-fade-up" style={{ animationDelay: "0.1s" }}>
             <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="integrations">Integrations</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
           </TabsList>
@@ -52,54 +54,20 @@ const Settings = () => {
                 <Button>Save Changes</Button>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="integrations" className="space-y-6">
-            <Card className="animate-fade-up" style={{ animationDelay: "0.2s" }}>
-              <CardHeader>
-                <CardTitle>Google Calendar</CardTitle>
-                <CardDescription>Connect your Google Calendar to sync meetings</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between p-4 rounded-lg border border-green-200 bg-green-50">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="w-8 h-8 text-green-600" />
-                    <div>
-                      <p className="font-semibold flex items-center gap-2">
-                        Connected
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      </p>
-                      <p className="text-sm text-muted-foreground">sarah@example.com</p>
-                    </div>
-                  </div>
-                  <Button variant="outline">
-                    Disconnect
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
 
             <Card className="animate-fade-up" style={{ animationDelay: "0.3s" }}>
               <CardHeader>
-                <CardTitle>WhatsApp Integration</CardTitle>
-                <CardDescription>Connect your WhatsApp for AI scheduling</CardDescription>
+                <CardTitle>Integrations</CardTitle>
+                <CardDescription>Manage your calendar and messaging integrations</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between p-4 rounded-lg border border-green-200 bg-green-50">
-                  <div className="flex items-center gap-3">
-                    <MessageSquare className="w-8 h-8 text-green-600" />
-                    <div>
-                      <p className="font-semibold flex items-center gap-2">
-                        Connected
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      </p>
-                      <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
-                    </div>
-                  </div>
-                  <Button variant="outline">
-                    Disconnect
-                  </Button>
-                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Need to connect or manage your Google Calendar, WhatsApp, or other integrations?
+                </p>
+                <Button variant="outline" onClick={() => navigate('/dashboard/integrations')} className="gap-2">
+                  Go to Integrations
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

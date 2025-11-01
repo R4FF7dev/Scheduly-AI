@@ -334,7 +334,7 @@ export const OnboardingWizard = () => {
                   </Button>
                 </div>
                 <p className="text-xs text-center text-muted-foreground">
-                  You can connect your calendar later from settings
+                  You can connect your calendar later from the Integrations page
                 </p>
               </div>}
 

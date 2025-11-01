@@ -12,6 +12,7 @@ import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Meetings from "./pages/dashboard/Meetings";
 import Calendar from "./pages/dashboard/Calendar";
+import Integrations from "./pages/dashboard/Integrations";
 import Settings from "./pages/dashboard/Settings";
 import Billing from "./pages/dashboard/Billing";
 import Support from "./pages/dashboard/Support";
@@ -24,7 +25,7 @@ import Contact from "./pages/Contact";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import About from "./pages/About";
-import Integrations from "./pages/Integrations";
+import PublicIntegrations from "./pages/Integrations";
 import API from "./pages/API";
 import NotFound from "./pages/NotFound";
 
@@ -40,6 +41,7 @@ const AppContent = () => {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/dashboard/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
         <Route path="/dashboard/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+        <Route path="/dashboard/integrations" element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
         <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
         <Route path="/dashboard/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
@@ -52,7 +54,7 @@ const AppContent = () => {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="/about" element={<About />} />
-        <Route path="/integrations" element={<Integrations />} />
+        <Route path="/integrations" element={<PublicIntegrations />} />
         <Route path="/api" element={<API />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
